@@ -1,14 +1,15 @@
 import collections
 
+
 class Tricks:
     def __init__(self):
         self.guesses = {}
         self.trick_counter = collections.defaultdict(int)
 
     def guess_tricks(self, player):
-        guess = input("{}: guess your number of tricks: {} --> ".format(player.name, player.hand))
+        input_fmt = "{}: guess your number of tricks: {} --> "
+        guess = input(input_fmt.format(player.name, player.hand))
         self.guesses[player.name] = int(guess)
-
 
 
 class Score:

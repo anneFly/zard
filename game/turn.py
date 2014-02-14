@@ -40,7 +40,7 @@ class Turn:
         # has a card in trump color been played?
         trump_played = False
         for card in self.pile:
-            if card[1].col == trump_color and not card[1].val in ['Z', 'N'] :
+            if card[1].col == trump_color and not card[1].val in ['Z', 'N']:
                 trump_played = True
                 break
 
@@ -50,7 +50,9 @@ class Turn:
             highest_val = 0
             highest_card = self.pile[0]
             for card in self.pile:
-                if not card[1].val in ['Z', 'N'] and card[1].col == serving_color and card[1].val > highest_val:
+                if not card[1].val in ['Z', 'N'] \
+                        and card[1].col == serving_color \
+                        and card[1].val > highest_val:
                     highest_val = card[1].val
                     highest_card = card
 
@@ -63,7 +65,9 @@ class Turn:
         highest_val = 0
         highest_card = self.pile[0]
         for card in self.pile:
-            if not card[1].val in ['Z', 'N'] and card[1].col == trump_color and card[1].val > highest_val:
+            if not card[1].val in ['Z', 'N'] \
+                    and card[1].col == trump_color \
+                    and card[1].val > highest_val:
                 highest_val = card[1].val
                 highest_card = card
 

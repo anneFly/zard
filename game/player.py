@@ -9,7 +9,7 @@ class Player:
         card_idx = None
 
         while card_idx is None:
-            card_idx = input('--> play a card: ')
+            card_idx = input("--> play a card: ")
             try:
                 card_idx = int(card_idx)
                 card = self.hand.pop(card_idx)
@@ -24,11 +24,11 @@ class Player:
         return card
 
     def can_serve(self, serving_color):
-        if serving_color == None:
+        if serving_color is None:
             return True
 
         for card in self.hand:
-            if card.col == serving_color and not card.val in ['Z', 'N']:
+            if card.col == serving_color and not card.val in ["Z", "N"]:
                 return True
 
         return False
