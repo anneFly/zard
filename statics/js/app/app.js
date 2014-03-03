@@ -5,7 +5,6 @@
 
     connection.onopen = function (e) {
         console.log('opened');
-        this.send('Hello my friend');
     };
 
     connection.onclose = function (e) {
@@ -17,9 +16,46 @@
     };
 
     connection.onmessage = function (msg) {
-        $('#MainContent').append('<br/>' + msg.data);
+        var data = JSON.parse(msg.data);
+
+        switch (data[0]) {
+        case 'chatmessage':
+            var $row = $('<span>');
+            $row.text(data[1] + ': ' + data[2]);
+            $('#Chat').append('<br/>').append($row);
+            break;
+        case 'players':
+            $('#ChatParticipants').empty().append(data[1].join(', '));
+            break;
+        }
     };
 
     window.connection = connection;
+
+    var $confirmNameButton = $('#ConfirmNameButton'),
+        $nameInput = $('#PlayerNameInput'),
+        $chatSendButton = $('#SendButton'),
+        $chatInput = $('#ChatInput');
+
+    $confirmNameButton.on('click', function (e) {
+        e.preventDefault();
+        var name = $nameInput.val(),
+            msg;
+        if (name) {
+            msg = JSON.stringify(['playername', name]);
+            connection.send(msg);
+            $('body').removeClass('modal-visible');
+        }
+    });
+
+    $chatSendButton.on('click', function (e) {
+        e.preventDefault();
+        var msg = $chatInput.val();
+        if (msg) {
+            msg = JSON.stringify(['chatmessage', msg]);
+            connection.send(msg);
+        }
+        $chatInput.val('');
+    });
 
 }(this, this.jQuery, this.SockJS));

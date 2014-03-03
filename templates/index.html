@@ -5,10 +5,27 @@
         <title>Zard</title>
         <link rel="stylesheet" href="/statics/css/styles.css">
     </head>
-    <body>
-        <h1>{{ title }}</h1>
-        <hr>
-        <div id="MainContent"></div>
+    <body class="modal-visible">
+        <section id="MainContent" class="main">
+            <h1>{{ title }}</h1>
+            <hr>
+        </section>
+        <section class="chat-sidebar">
+            <div class="chat-wrapper">
+                players in the room
+                <div id="ChatParticipants" class="chat-participants"></div>
+                <div id="Chat" class="chat-messages">
+                </div>
+            </div>
+            <textarea id="ChatInput" placeholder="enter chat message"></textarea>
+            <button id="SendButton" type="button">send</button>
+        </section>
+        <div class="modal-backdrop"></div>
+        <div class="modal-enter-name">
+            <h2>Please enter your name</h2>
+            <input type="text" id="PlayerNameInput">
+            <button type="button" id="ConfirmNameButton">ok</button>
+        </div>
 
         <script src="http://cdn.sockjs.org/sockjs-0.3.js"></script>
         <script src="http://code.jquery.com/jquery-1.11.0.min.js"></script>

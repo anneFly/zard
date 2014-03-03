@@ -1,3 +1,368 @@
+/*! normalize.css v3.0.0 | MIT License | git.io/normalize */
+/*! normalize.css v3.0.0 | HTML5 Display Definitions | MIT License | git.io/normalize */
+/* line 20, ../../../../../../var/lib/gems/1.9.1/gems/compass-normalize-1.5/stylesheets/normalize/_html5.scss */
+article,
+aside,
+details,
+figcaption,
+figure,
+footer,
+header,
+hgroup,
+main,
+nav,
+section,
+summary {
+  display: block;
+}
+
+/* line 32, ../../../../../../var/lib/gems/1.9.1/gems/compass-normalize-1.5/stylesheets/normalize/_html5.scss */
+audio,
+canvas,
+progress,
+video {
+  display: inline-block;
+  vertical-align: baseline;
+}
+
+/* line 40, ../../../../../../var/lib/gems/1.9.1/gems/compass-normalize-1.5/stylesheets/normalize/_html5.scss */
+audio:not([controls]) {
+  display: none;
+  height: 0;
+}
+
+/* line 48, ../../../../../../var/lib/gems/1.9.1/gems/compass-normalize-1.5/stylesheets/normalize/_html5.scss */
+[hidden],
+template {
+  display: none;
+}
+
+/*! normalize.css v3.0.0 | Base | MIT License | git.io/normalize */
+/* line 11, ../../../../../../var/lib/gems/1.9.1/gems/compass-normalize-1.5/stylesheets/normalize/_base.scss */
 html {
-    background: #f2f2f2;
+  font-family: sans-serif;
+  -webkit-text-size-adjust: 100%;
+  -ms-text-size-adjust: 100%;
+}
+
+/* line 19, ../../../../../../var/lib/gems/1.9.1/gems/compass-normalize-1.5/stylesheets/normalize/_base.scss */
+body {
+  margin: 0;
+}
+
+/*! normalize.css v3.0.0 | Links | MIT License | git.io/normalize */
+/* line 9, ../../../../../../var/lib/gems/1.9.1/gems/compass-normalize-1.5/stylesheets/normalize/_links.scss */
+a {
+  background: transparent;
+}
+
+/* line 16, ../../../../../../var/lib/gems/1.9.1/gems/compass-normalize-1.5/stylesheets/normalize/_links.scss */
+a:active,
+a:hover {
+  outline: 0;
+}
+
+/*! normalize.css v3.0.0 | Typography | MIT License | git.io/normalize */
+/* line 9, ../../../../../../var/lib/gems/1.9.1/gems/compass-normalize-1.5/stylesheets/normalize/_typography.scss */
+abbr[title] {
+  border-bottom: 1px dotted;
+}
+
+/* line 16, ../../../../../../var/lib/gems/1.9.1/gems/compass-normalize-1.5/stylesheets/normalize/_typography.scss */
+b,
+strong {
+  font-weight: bold;
+}
+
+/* line 22, ../../../../../../var/lib/gems/1.9.1/gems/compass-normalize-1.5/stylesheets/normalize/_typography.scss */
+dfn {
+  font-style: italic;
+}
+
+/* line 29, ../../../../../../var/lib/gems/1.9.1/gems/compass-normalize-1.5/stylesheets/normalize/_typography.scss */
+h1 {
+  font-size: 2em;
+  margin: 0.67em 0;
+}
+
+/* line 36, ../../../../../../var/lib/gems/1.9.1/gems/compass-normalize-1.5/stylesheets/normalize/_typography.scss */
+mark {
+  background: #ff0;
+  color: #000;
+}
+
+/* line 43, ../../../../../../var/lib/gems/1.9.1/gems/compass-normalize-1.5/stylesheets/normalize/_typography.scss */
+small {
+  font-size: 80%;
+}
+
+/* line 50, ../../../../../../var/lib/gems/1.9.1/gems/compass-normalize-1.5/stylesheets/normalize/_typography.scss */
+sub,
+sup {
+  font-size: 75%;
+  line-height: 0;
+  position: relative;
+  vertical-align: baseline;
+}
+
+/* line 57, ../../../../../../var/lib/gems/1.9.1/gems/compass-normalize-1.5/stylesheets/normalize/_typography.scss */
+sup {
+  top: -0.5em;
+}
+
+/* line 61, ../../../../../../var/lib/gems/1.9.1/gems/compass-normalize-1.5/stylesheets/normalize/_typography.scss */
+sub {
+  bottom: -0.25em;
+}
+
+/*! normalize.css v3.0.0 | Embedded Content | MIT License | git.io/normalize */
+/* line 9, ../../../../../../var/lib/gems/1.9.1/gems/compass-normalize-1.5/stylesheets/normalize/_embeds.scss */
+img {
+  border: 0;
+}
+
+/* line 15, ../../../../../../var/lib/gems/1.9.1/gems/compass-normalize-1.5/stylesheets/normalize/_embeds.scss */
+svg:not(:root) {
+  overflow: hidden;
+}
+
+/*! normalize.css v3.0.0 | Figures | MIT License | git.io/normalize */
+/* line 9, ../../../../../../var/lib/gems/1.9.1/gems/compass-normalize-1.5/stylesheets/normalize/_groups.scss */
+figure {
+  margin: 1em 40px;
+}
+
+/* line 15, ../../../../../../var/lib/gems/1.9.1/gems/compass-normalize-1.5/stylesheets/normalize/_groups.scss */
+hr {
+  -moz-box-sizing: content-box;
+  box-sizing: content-box;
+  height: 0;
+}
+
+/* line 23, ../../../../../../var/lib/gems/1.9.1/gems/compass-normalize-1.5/stylesheets/normalize/_groups.scss */
+pre {
+  overflow: auto;
+}
+
+/* line 32, ../../../../../../var/lib/gems/1.9.1/gems/compass-normalize-1.5/stylesheets/normalize/_groups.scss */
+code,
+kbd,
+pre,
+samp {
+  font-family: monospace, monospace;
+  font-size: 1em;
+}
+
+/*! normalize.css v3.0.0 | Forms | MIT License | git.io/normalize */
+/* line 19, ../../../../../../var/lib/gems/1.9.1/gems/compass-normalize-1.5/stylesheets/normalize/_forms.scss */
+button,
+input,
+optgroup,
+select,
+textarea {
+  color: inherit;
+  font: inherit;
+  margin: 0;
+}
+
+/* line 27, ../../../../../../var/lib/gems/1.9.1/gems/compass-normalize-1.5/stylesheets/normalize/_forms.scss */
+button {
+  overflow: visible;
+}
+
+/* line 37, ../../../../../../var/lib/gems/1.9.1/gems/compass-normalize-1.5/stylesheets/normalize/_forms.scss */
+button,
+select {
+  text-transform: none;
+}
+
+/* line 50, ../../../../../../var/lib/gems/1.9.1/gems/compass-normalize-1.5/stylesheets/normalize/_forms.scss */
+button,
+html input[type="button"],
+input[type="reset"],
+input[type="submit"] {
+  -webkit-appearance: button;
+  cursor: pointer;
+}
+
+/* line 58, ../../../../../../var/lib/gems/1.9.1/gems/compass-normalize-1.5/stylesheets/normalize/_forms.scss */
+button[disabled],
+html input[disabled] {
+  cursor: default;
+}
+
+/* line 65, ../../../../../../var/lib/gems/1.9.1/gems/compass-normalize-1.5/stylesheets/normalize/_forms.scss */
+button::-moz-focus-inner,
+input::-moz-focus-inner {
+  border: 0;
+  padding: 0;
+}
+
+/* line 73, ../../../../../../var/lib/gems/1.9.1/gems/compass-normalize-1.5/stylesheets/normalize/_forms.scss */
+input {
+  line-height: normal;
+}
+
+/* line 84, ../../../../../../var/lib/gems/1.9.1/gems/compass-normalize-1.5/stylesheets/normalize/_forms.scss */
+input[type="checkbox"],
+input[type="radio"] {
+  box-sizing: border-box;
+  padding: 0;
+}
+
+/* line 94, ../../../../../../var/lib/gems/1.9.1/gems/compass-normalize-1.5/stylesheets/normalize/_forms.scss */
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  height: auto;
+}
+
+/* line 102, ../../../../../../var/lib/gems/1.9.1/gems/compass-normalize-1.5/stylesheets/normalize/_forms.scss */
+input[type="search"] {
+  -webkit-appearance: textfield;
+  -moz-box-sizing: content-box;
+  -webkit-box-sizing: content-box;
+  box-sizing: content-box;
+}
+
+/* line 114, ../../../../../../var/lib/gems/1.9.1/gems/compass-normalize-1.5/stylesheets/normalize/_forms.scss */
+input[type="search"]::-webkit-search-cancel-button,
+input[type="search"]::-webkit-search-decoration {
+  -webkit-appearance: none;
+}
+
+/* line 120, ../../../../../../var/lib/gems/1.9.1/gems/compass-normalize-1.5/stylesheets/normalize/_forms.scss */
+fieldset {
+  border: 1px solid #c0c0c0;
+  margin: 0 2px;
+  padding: 0.35em 0.625em 0.75em;
+}
+
+/* line 129, ../../../../../../var/lib/gems/1.9.1/gems/compass-normalize-1.5/stylesheets/normalize/_forms.scss */
+legend {
+  border: 0;
+  padding: 0;
+}
+
+/* line 136, ../../../../../../var/lib/gems/1.9.1/gems/compass-normalize-1.5/stylesheets/normalize/_forms.scss */
+textarea {
+  overflow: auto;
+}
+
+/* line 143, ../../../../../../var/lib/gems/1.9.1/gems/compass-normalize-1.5/stylesheets/normalize/_forms.scss */
+optgroup {
+  font-weight: bold;
+}
+
+/*! normalize.css v3.0.0 | Tables | MIT License | git.io/normalize */
+/* line 9, ../../../../../../var/lib/gems/1.9.1/gems/compass-normalize-1.5/stylesheets/normalize/_tables.scss */
+table {
+  border-collapse: collapse;
+  border-spacing: 0;
+}
+
+/* line 15, ../../../../../../var/lib/gems/1.9.1/gems/compass-normalize-1.5/stylesheets/normalize/_tables.scss */
+td,
+th {
+  padding: 0;
+}
+
+/* line 1, ../../scss/_base.scss */
+html, body {
+  height: 100%;
+}
+
+/* line 5, ../../scss/_base.scss */
+.main {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 65%;
+  background: #eaeaea;
+}
+
+/* line 14, ../../scss/_base.scss */
+.chat-sidebar {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  right: 0;
+  width: 35%;
+}
+/* line 21, ../../scss/_base.scss */
+.chat-sidebar .chat-wrapper {
+  position: absolute;
+  top: 0;
+  bottom: 94px;
+  left: 0;
+  right: 0;
+  padding: 2%;
+}
+/* line 30, ../../scss/_base.scss */
+.chat-sidebar .chat-participants {
+  height: 40px;
+  overflow-y: scroll;
+  background: #cecece;
+}
+/* line 36, ../../scss/_base.scss */
+.chat-sidebar .chat-messages {
+  position: absolute;
+  left: 2%;
+  right: 2%;
+  bottom: 0;
+  top: 70px;
+  overflow-y: scroll;
+}
+/* line 45, ../../scss/_base.scss */
+.chat-sidebar textarea {
+  position: absolute;
+  bottom: 30px;
+  height: 50px;
+  resize: none;
+  width: 94%;
+  margin: 0 2%;
+  padding: 1%;
+}
+/* line 55, ../../scss/_base.scss */
+.chat-sidebar button[type=button] {
+  position: absolute;
+  bottom: 5px;
+  width: 94%;
+  margin: 0 2%;
+  padding: 1%;
+  box-sizing: content-box;
+  -moz-box-sizing: content-box;
+  border: 1px solid;
+  text-transform: uppercase;
+  height: 24px;
+}
+
+/* line 1, ../../scss/_modal.scss */
+.modal-backdrop {
+  display: none;
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  background: rgba(0, 0, 0, 0.5);
+}
+
+/* line 11, ../../scss/_modal.scss */
+.modal-enter-name {
+  display: none;
+  position: fixed;
+  left: 30%;
+  right: 30%;
+  top: 50%;
+  height: 200px;
+  margin-top: -100px;
+  background: #fff;
+  text-align: center;
+}
+
+/* line 25, ../../scss/_modal.scss */
+body.modal-visible .modal-backdrop,
+body.modal-visible .modal-enter-name {
+  display: block;
 }
