@@ -1,0 +1,28 @@
+players --> connection --> lobby
+
+choose game --> conect to game --> enough players--> start game
+
+
+API:
+clinet:
+    - set name
+    - start
+    - make guess
+    - play card
+
+
+server:
+    - all players (names)
+    - current hand
+    - notify player about turn to guess
+    - what did player guess
+    - notify player about turn to play
+    - cards that were played
+    - notify about invalid action (invalid card, playing without having turn)
+    - players joining/leaving
+    - trump color
+    - trick goes to
+    - notify about current amount of tricks
+    - current level
+    - score after level
+    - final score
