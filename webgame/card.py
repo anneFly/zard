@@ -6,6 +6,7 @@ class Card:
         self.color = color
         self.value = value
         self.id = '{}{}'.format(value, color[0])
+        self.owner = None
 
     def __repr__(self):
         return '{} {}'.format(self.color, self.value)

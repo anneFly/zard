@@ -6,41 +6,43 @@ class Turn:
 
     def set_serving_color(self):
         if self.serving_color is None and len(self.pile) > 0:
-            if self.pile[-1][1].value in ['Z', 'N']:
+            if self.pile[-1].value in ['Z', 'N']:
                 self.serving_color = None
             else:
-                self.serving_color = self.pile[-1][1].color
+                self.serving_color = self.pile[-1].color
 
     def get_serving_color(self):
         serving_color = None
         i = 0
         while serving_color is None:
-            if self.pile[i][1].value in ['Z', 'N']:
+            if self.pile[i].value in ['Z', 'N']:
                 i += 1
+                if len(self.pile) == 1:
+                    return serving_color
             else:
-                serving_color = self.pile[i][1].color
+                serving_color = self.pile[i].color
                 return serving_color
 
     def winner(self, trump_color):
         # if Zard in pile --> first zard wins
         for played_card in self.pile:
-            if played_card[1].value == 'Z':
-                return played_card[0]
+            if played_card.value == 'Z':
+                return played_card.owner
 
         # if only nerds --> don't get serving color, return first nerd
         for idx, played_card in enumerate(self.pile):
-            if played_card[1].value == 'N' and idx == len(self.pile) - 1:
-                return played_card[0]
-            if played_card[1].value != 'N':
+            if played_card.value == 'N' and idx == len(self.pile) - 1:
+                return played_card.owner
+            if played_card.value != 'N':
                 break
 
         # has a card in trump color been played?
         trump_played = False
         for played_card in self.pile:
-            if played_card[1].value in ['Z', 'N']:
+            if played_card.value in ['Z', 'N']:
                 continue
 
-            if played_card[1].color == trump_color:
+            if played_card.color == trump_color:
                 trump_played = True
                 break
 
@@ -50,22 +52,22 @@ class Turn:
             highest_value = 0
             highest_card = self.pile[0]
             for played_card in self.pile:
-                if not played_card[1].value in ['Z', 'N'] \
-                        and played_card[1].color == serving_color \
-                        and played_card[1].value > highest_value:
-                    highest_value = played_card[1].value
+                if played_card.value not in ['Z', 'N'] \
+                        and played_card.color == serving_color \
+                        and played_card.value > highest_value:
+                    highest_value = played_card.value
                     highest_card = played_card
 
-            return highest_card[0]
+            return highest_card.owner
 
         # if someone played a card in trump color
         highest_value = 0
         highest_card = self.pile[0]
         for played_card in self.pile:
-            if not played_card[1].value in ['Z', 'N'] \
-                    and played_card[1].color == trump_color \
-                    and played_card[1].value > highest_value:
-                highest_value = played_card[1].value
+            if played_card.value not in ['Z', 'N'] \
+                    and played_card.color == trump_color \
+                    and played_card.value > highest_value:
+                highest_value = played_card.value
                 highest_card = played_card
 
-        return highest_card[0]
+        return highest_card.owner

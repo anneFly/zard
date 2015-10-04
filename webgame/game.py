@@ -15,7 +15,6 @@ class Game:
         self.level = 1
         self.starter = 0
         self.trump = None
-        self.pile = []
         self.deck = card.generate_deck(shuffle_deck=shuffle_deck)
         self.players = []
         self.score = score_module.Score()
@@ -41,7 +40,9 @@ class Game:
         for p in self.players:
             p.hand = []
             for i in range(self.level):
-                p.hand.append(self.deck.pop())
+                card_ = self.deck.pop()
+                card_.owner = p
+                p.hand.append(card_)
 
         self.trump = self.deck.pop() if self.deck else None
 
@@ -118,7 +119,7 @@ class Game:
     def start_turn(self):
         self.state = 'turn'
         self.turn = turn_module.Turn()
-        self.turn.starter = self.last_winner or self.start_idx
+        self.turn.starter = self.last_winner if self.last_winner is not None else self.start_idx
         self.starting_players = self.starters(self.turn.starter)
         self.active_player = next(self.starting_players)
         self.notify_player_to_play()
@@ -164,13 +165,13 @@ class Game:
         if self.active_player.user == user:
             card = self.active_player.play_card(card_id)
             if not self.active_player.can_serve(self.turn.serving_color):
-                self.turn.pile.append([self.active_player, card])
+                self.turn.pile.append(card)
                 self.next_player()
             else:
                 if card.color == self.turn.serving_color or \
                    self.turn.serving_color is None or \
                    card.value in ['Z', 'N']:
-                    self.turn.pile.append([self.active_player, card])
+                    self.turn.pile.append(card)
                     self.next_player()
                 else:
                     # cannot play this card
