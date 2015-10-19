@@ -76,6 +76,7 @@ class Game:
             p.user.broadcast([p.user], json.dumps(['hand', p.get_hand()]))
 
         self.starting_players = self.starters(self.start_idx)
+        self.score.reset_turn_score()
         self.start_guessing()
 
     def notify_player_to_guess(self):
@@ -92,7 +93,6 @@ class Game:
 
     def start_guessing(self):
         self.state = 'guessing'
-        self.tricks = score_module.Tricks()
         # self.starter
         self.active_player = next(self.starting_players)
         self.notify_player_to_guess()
@@ -102,7 +102,7 @@ class Game:
             raise GameException('Not the time to guess.')
 
         if self.active_player.user == user:
-            self.tricks.guess_tricks(self.active_player, guess)
+            self.score.guess_tricks(self.active_player, guess)
             try:
                 self.active_player = next(self.starting_players)
                 self.notify_player_to_guess()
@@ -126,7 +126,7 @@ class Game:
 
     def end_turn(self):
         trick_winner = self.turn.winner(self.trump.color)
-        self.tricks.trick_counter[trick_winner.name] += 1
+        self.score.trick_counter[trick_winner.name] += 1
         for idx, p in enumerate(self.players):
             if p.name == trick_winner.name:
                 self.last_winner = idx
@@ -138,8 +138,8 @@ class Game:
         )
         self.turns_to_play -= 1
         if self.turns_to_play == 0:
-            self.score.count_points(self.players, self.tricks.guesses,
-                                    self.tricks.trick_counter)
+            self.score.count_points(self.players, self.score.guesses,
+                                    self.score.trick_counter)
             self.active_player.user.broadcast(
                 [u[0] for u in self.users],
                 json.dumps(['message', 'score: {}'.format(str(self.score.score))])
@@ -149,8 +149,6 @@ class Game:
             self.start_turn()
 
     def next_player(self):
-        if self.turn.played == 0:
-            self.turn.set_serving_color()
         self.turn.played.add(self.active_player.name)
         try:
             self.active_player = next(self.starting_players)
@@ -164,12 +162,12 @@ class Game:
 
         if self.active_player.user == user:
             card = self.active_player.play_card(card_id)
-            if not self.active_player.can_serve(self.turn.serving_color):
+            if not self.active_player.can_serve(self.turn.get_serving_color()):
                 self.turn.pile.append(card)
                 self.next_player()
             else:
-                if card.color == self.turn.serving_color or \
-                   self.turn.serving_color is None or \
+                if card.color == self.turn.get_serving_color() or \
+                   self.turn.get_serving_color() is None or \
                    card.value in ['Z', 'N']:
                     self.turn.pile.append(card)
                     self.next_player()
