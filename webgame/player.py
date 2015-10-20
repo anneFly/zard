@@ -8,12 +8,15 @@ class Player:
         self.tricks = []
         self.user = user
 
+    def __repr__(self):
+        return self.name
+
     def get_hand(self):
         return [c.id for c in self.hand]
 
     def play_card(self, card_id):
         if card_id not in self.get_hand():
-            raise GameException('you don\'t have this card on your hand.')
+            raise GameException('You don\'t have this card on your hand.')
 
         for idx, card in enumerate(self.hand):
             if card.id == card_id:
@@ -23,7 +26,7 @@ class Player:
 
     def can_serve(self, serving_color):
         if serving_color is None:
-            return True
+            return False
 
         for card in self.hand:
             if card.color == serving_color and card.value not in ["Z", "N"]:

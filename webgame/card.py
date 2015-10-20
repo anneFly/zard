@@ -12,15 +12,12 @@ class Card:
         return '{} {}'.format(self.color, self.value)
 
 
-def generate_deck(shuffle_deck=True):
+def generate_deck():
     values = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 'Z', 'N']
     colors = ['blue', 'yellow', 'green', 'red']
     deck = []
     for c in colors:
         for v in values:
             deck.append(Card(c, v))
-
-    if shuffle_deck:
-        shuffle(deck)
-
+    shuffle(deck)
     return deck

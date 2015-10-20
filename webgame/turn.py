@@ -1,7 +1,6 @@
 class Turn:
     def __init__(self):
         self.pile = []
-        self.played = set()
 
     def get_serving_color(self):
         serving_color = None

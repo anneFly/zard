@@ -39,7 +39,7 @@ class GameConnection(sockjs.tornado.SockJSConnection):
 
             global_game.add_user(self, name)
             if global_game.num_players == 3:
-                global_game.start()
+                global_game.start_game()
 
         elif message[0] == 'guess':
             guess = message[1]

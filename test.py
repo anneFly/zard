@@ -1,4 +1,5 @@
 import zard
+from webgame.exceptions import GameException
 
 
 class MockConnection:
@@ -10,7 +11,7 @@ class MockConnection:
     def broadcast(self, to, msg):
         print('{} {}'.format(to[0].name, msg))
 
-gg = zard.game.Game(shuffle_deck=False)
+gg = zard.game.Game()
 
 connection1 = MockConnection(name='player0')
 connection2 = MockConnection(name='player1')
@@ -22,11 +23,11 @@ gg.add_user(connection3, 'player2')
 
 assert len(gg.users) == 3
 
-gg.start()
+gg.start_game()
 
 assert len(gg.players) == 3
 assert gg.level == 1
-assert gg.state == 'guessing'
+assert gg.state == 'GUESSING'
 assert len(gg.players[0].hand) == 1
 assert gg.trump is not None
 
@@ -45,15 +46,15 @@ gg.trump.id = '1g'
 
 assert gg.active_player == gg.players[0]
 gg.on_guess(gg.players[0].user, 0)
-assert gg.score.guesses[gg.players[0].name] == 0
+assert gg.score.guesses[gg.players[0]] == 0
 
 assert gg.active_player == gg.players[1]
 gg.on_guess(gg.players[1].user, 1)
-assert gg.score.guesses[gg.players[1].name] == 1
+assert gg.score.guesses[gg.players[1]] == 1
 
 assert gg.active_player == gg.players[2]
 gg.on_guess(gg.players[2].user, 1)
-assert gg.score.guesses[gg.players[2].name] == 1
+assert gg.score.guesses[gg.players[2]] == 1
 
 assert gg.last_winner is None
 assert gg.turns_to_play == 1
@@ -80,14 +81,14 @@ assert gg.turn.pile[-1].color == 'red'
 assert gg.turn.pile[-1].owner == gg.players[2]
 
 
-assert gg.score.score[gg.players[0].name] == 20
-assert gg.score.score[gg.players[1].name] == -10
-assert gg.score.score[gg.players[2].name] == 30
+assert gg.score.score[gg.players[0]] == 20
+assert gg.score.score[gg.players[1]] == -10
+assert gg.score.score[gg.players[2]] == 30
 
 # second round ####
 
 assert gg.level == 2
-assert gg.state == 'guessing'
+assert gg.state == 'GUESSING'
 assert len(gg.players[0].hand) == 2
 assert gg.trump is not None
 
@@ -106,28 +107,28 @@ gg.players[1].hand[1].id = '13y'
 gg.players[2].hand[0].color = 'red'
 gg.players[2].hand[0].value = 7
 gg.players[2].hand[0].id = '7r'
-gg.players[2].hand[1].color = 'red'
+gg.players[2].hand[1].color = 'blue'
 gg.players[2].hand[1].value = 3
-gg.players[2].hand[1].id = '3r'
+gg.players[2].hand[1].id = '3b'
 gg.trump.color = 'red'
 gg.trump.value = 1
 gg.trump.id = '1r'
 
 assert gg.active_player == gg.players[1]
 gg.on_guess(gg.players[1].user, 2)
-assert gg.score.guesses[gg.players[1].name] == 2
+assert gg.score.guesses[gg.players[1]] == 2
 
 assert gg.active_player == gg.players[2]
 gg.on_guess(gg.players[2].user, 2)
-assert gg.score.guesses[gg.players[2].name] == 2
+assert gg.score.guesses[gg.players[2]] == 2
 
 assert gg.active_player == gg.players[0]
 gg.on_guess(gg.players[0].user, 1)
-assert gg.score.guesses[gg.players[0].name] == 1
+assert gg.score.guesses[gg.players[0]] == 1
 
 
 assert gg.last_winner is None
-assert gg.start_idx == 1
+assert gg.get_start_index() == 1
 assert gg.turns_to_play == 2
 
 assert gg.active_player == gg.players[1]
@@ -135,18 +136,33 @@ gg.on_play_card(gg.players[1].user, '13b')
 
 assert gg.turn.get_serving_color() == 'blue'
 
+# try to play card that is not on the hand
 assert gg.active_player == gg.players[2]
-gg.on_play_card(gg.players[2].user, '3r')
+try:
+    gg.on_play_card(gg.players[2].user, '3r')
+except GameException as e:
+    print(e.message)
+
+# try to play trump even though player can serve
+assert gg.active_player == gg.players[2]
+try:
+    gg.on_play_card(gg.players[2].user, '7r')
+except GameException as e:
+    print(e.message)
+
+# finally play a correct card
+assert gg.active_player == gg.players[2]
+gg.on_play_card(gg.players[2].user, '3b')
 
 assert gg.active_player == gg.players[0]
 gg.on_play_card(gg.players[0].user, 'Zy')
 
-assert gg.score.trick_counter['player0'] == 1
-assert gg.score.trick_counter['player1'] == 0
-assert gg.score.trick_counter['player2'] == 0
+assert gg.score.trick_counter[gg.players[0]] == 1
+assert gg.score.trick_counter[gg.players[1]] == 0
+assert gg.score.trick_counter[gg.players[2]] == 0
 
-assert gg.last_winner == 0
-assert gg.turn.starter == 0
+assert gg.last_winner == gg.players[0]
+assert gg.get_turn_starter() == 0
 assert gg.turns_to_play == 1
 
 assert gg.active_player == gg.players[0]
@@ -163,15 +179,15 @@ assert gg.active_player == gg.players[2]
 gg.on_play_card(gg.players[2].user, '7r')
 
 
-assert gg.score.score[gg.players[0].name] == 50
-assert gg.score.score[gg.players[1].name] == -30
-assert gg.score.score[gg.players[2].name] == 20
+assert gg.score.score[gg.players[0]] == 50
+assert gg.score.score[gg.players[1]] == -30
+assert gg.score.score[gg.players[2]] == 20
 
 
 # third round ####
 
 assert gg.level == 3
-assert gg.state == 'guessing'
+assert gg.state == 'GUESSING'
 assert len(gg.players[0].hand) == 3
 assert gg.trump is not None
 
@@ -208,19 +224,19 @@ gg.trump.id = '1r'
 
 assert gg.active_player == gg.players[2]
 gg.on_guess(gg.players[2].user, 2)
-assert gg.score.guesses[gg.players[2].name] == 2
+assert gg.score.guesses[gg.players[2]] == 2
 
 assert gg.active_player == gg.players[0]
 gg.on_guess(gg.players[0].user, 2)
-assert gg.score.guesses[gg.players[0].name] == 2
+assert gg.score.guesses[gg.players[0]] == 2
 
 assert gg.active_player == gg.players[1]
 gg.on_guess(gg.players[1].user, 2)
-assert gg.score.guesses[gg.players[1].name] == 2
+assert gg.score.guesses[gg.players[1]] == 2
 
 
 assert gg.last_winner is None
-assert gg.start_idx == 2
+assert gg.get_start_index() == 2
 assert gg.turns_to_play == 3
 
 # test only nerds
@@ -237,12 +253,12 @@ assert gg.turn.get_serving_color() is None
 assert gg.active_player == gg.players[1]
 gg.on_play_card(gg.players[1].user, 'Ng')
 
-assert gg.score.trick_counter['player0'] == 0
-assert gg.score.trick_counter['player1'] == 0
-assert gg.score.trick_counter['player2'] == 1
+assert gg.score.trick_counter[gg.players[0]] == 0
+assert gg.score.trick_counter[gg.players[1]] == 0
+assert gg.score.trick_counter[gg.players[2]] == 1
 
-assert gg.last_winner == 2
-assert gg.turn.starter == 2
+assert gg.last_winner == gg.players[2]
+assert gg.get_turn_starter() == 2
 assert gg.turns_to_play == 2
 
 # test only zards
@@ -259,12 +275,12 @@ assert gg.turn.get_serving_color() is None
 assert gg.active_player == gg.players[1]
 gg.on_play_card(gg.players[1].user, 'Zy')
 
-assert gg.score.trick_counter['player0'] == 0
-assert gg.score.trick_counter['player1'] == 0
-assert gg.score.trick_counter['player2'] == 2
+assert gg.score.trick_counter[gg.players[0]] == 0
+assert gg.score.trick_counter[gg.players[1]] == 0
+assert gg.score.trick_counter[gg.players[2]] == 2
 
-assert gg.last_winner == 2
-assert gg.turn.starter == 2
+assert gg.last_winner == gg.players[2]
+assert gg.get_turn_starter() == 2
 assert gg.turns_to_play == 1
 
 
@@ -282,6 +298,6 @@ assert gg.active_player == gg.players[1]
 gg.on_play_card(gg.players[1].user, '6r')
 
 
-assert gg.score.score[gg.players[0].name] == 30
-assert gg.score.score[gg.players[1].name] == -40
-assert gg.score.score[gg.players[2].name] == 60
+assert gg.score.score[gg.players[0]] == 30
+assert gg.score.score[gg.players[1]] == -40
+assert gg.score.score[gg.players[2]] == 60
