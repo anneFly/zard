@@ -1,15 +1,17 @@
-import os
 import json
+import os
+import time
 
 import tornado.ioloop
 import tornado.web
 import sockjs.tornado
 
-from webgame import game, exceptions
+from webgame.game import Game
+from webgame.exceptions import GameException
 
 
-global_game = game.Game()
 users = set()
+games = {}
 
 PROJECT_DIR = os.path.abspath(os.path.dirname(__file__))
 STATICS_DIR = os.path.join(PROJECT_DIR, 'statics')
@@ -22,38 +24,99 @@ class MainHandler(tornado.web.RequestHandler):
 
 
 class GameConnection(sockjs.tornado.SockJSConnection):
-    _next_id = 1
+    id = None
+    name = ''
+    game = None
 
     def on_open(self, info):
+        self.id = str(str(time.time()) + str(info.ip)).replace('.', '').replace(':', '')
         users.add(self)
 
     def on_close(self):
+        self.leave_game()
         users.remove(self)
 
     def on_message(self, msg):
         message = json.loads(msg)
 
-        if message[0] == 'start':
-            name = 'player_{}'.format(type(self)._next_id)
-            type(self)._next_id += 1
+        try:
+            if message[0] == 'rename':
+                self.rename(*message[1:])
 
-            global_game.add_user(self, name)
-            if global_game.num_players == 3:
-                global_game.start_game()
+            elif message[0] == 'createGame':
+                self.create_game(*message[1:])
 
-        elif message[0] == 'guess':
-            guess = message[1]
-            try:
-                global_game.on_guess(self, guess)
-            except exceptions.GameException as e:
-                self.broadcast([self], json.dumps(['error', str(e)]))
+            elif message[0] == 'joinGame':
+                self.join_game(*message[1:])
 
-        elif message[0] == 'play':
-            card_id = message[1]
-            try:
-                global_game.on_play_card(self, card_id)
-            except exceptions.GameException as e:
-                self.broadcast([self], json.dumps(['error', str(e)]))
+            elif message[0] == 'leaveGame':
+                self.leave_game(*message[1:])
+
+            elif message[0] == 'guess':
+                self.guess(*message[1:])
+
+            elif message[0] == 'play':
+                self.play(*message[1:])
+        except GameException as e:
+            self.broadcast([self], json.dumps(['error', str(e.message)]))
+
+    def rename(self, name, *args):
+        if not name:
+            raise GameException('You must provide a name.')
+        self.name = name
+
+    def create_game(self, game_name, size, *args):
+        if not game_name:
+            raise GameException('You must provide a name for your game.')
+
+        if not size or int(size) < 3 or int(size) > 6:
+            raise GameException('The game size must be between 3 and 6.')
+
+        if self.game is not None:
+            raise GameException('You already joined a game. Leave your current game '
+                                'to create a new one.')
+
+        game = Game(game_name, int(size))
+        game.add_user(self)
+        self.game = game
+        games[game.id] = game
+
+    def join_game(self, game_id, *args):
+        if not game_id:
+            raise GameException('No game id was provided.')
+        if self.game is not None:
+            raise GameException('You already joined a game. Leave your current game '
+                                'to join a new one.')
+        try:
+            game = games[game_id]
+        except KeyError:
+            raise GameException('Unable to find the game.')
+
+        game.add_user(self)
+        self.game = game
+
+    def leave_game(self, *args):
+        if self.game:
+            self.game.remove_user(self)
+
+    def guess(self, guess, *args):
+        if guess in [None, '']:
+            raise GameException('You have to make a guess.')
+
+        try:
+            int(guess)
+        except ValueError:
+            raise GameException('This is not a valid guess.')
+
+        if self.game:
+            self.game.on_guess(self, guess)
+
+    def play(self, card_id, *args):
+        if not card_id:
+            raise GameException('No card id provided.')
+
+        if self.game:
+            self.game.on_play_card(self, card_id)
 
 
 game_router = sockjs.tornado.SockJSRouter(GameConnection, '/sock')

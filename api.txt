@@ -1,28 +1,76 @@
-players --> connection --> lobby
+API
+===
 
-choose game --> conect to game --> enough players--> start game
+Send
+-----
+
+rename:
+["rename", str:name]
+["rename", "Bobbins"]
+
+create game:
+["createGame", str:game_name, int:size]
+["createGame", "my awesome game", 3]
+
+join game:
+["joinGame", str:game_id]
+["joinGame", "somegameid"]
+
+leave game:
+["leaveGame"]
+
+guess:
+["guess", int:guess]
+["guess", 4]
+
+play:
+["play", str:card_id]
+["play", "13r"]
 
 
-API:
-clinet:
-    - set name
-    - start
-    - make guess
-    - play card
+Receive
+-------
 
-
-server:
-    - all players (names)
-    - current hand
-    - notify player about turn to guess
-    - what did player guess
-    - notify player about turn to play
-    - cards that were played
-    - notify about invalid action (invalid card, playing without having turn)
-    - players joining/leaving
-    - trump color
-    - trick goes to
-    - notify about current amount of tricks
-    - current level
-    - score after level
-    - final score
+game status:
+[
+    "gameState",
+    {
+        "state": str:state,
+        "level": int:level,
+        "players": [str:player_name, str:player_name, ...],
+        "trump": str:trump_id or null,
+        "activePlayer": str:player_name or null,
+        "pile": [str:card_id, str:card_id, ...] or [],
+        "lastWinner": str:player_name or null,
+        "score": {str:player_name: int:score, ...},
+        "tricks": {str:player_name: int:tricks, ...},
+        "guesses": {str:player_name: int:guess, ...},
+    },
+]
+[
+    "gameState",
+    {
+        "state": 'PLAYING',
+        "level": 2,
+        "players": ["Bobbins", "Bob", "Bobbienchen"],
+        "trump": "4g",
+        "activePlayer": "Bobbins",
+        "pile": ['3r', "Zr"],
+        "lastWinner": "Bob",
+        "score": {
+            "Bobbins": 30,
+            "Bob": -10,
+            "Bobbienchen": 20
+        },
+        "tricks": {
+            "Bobbins": 0,
+            "Bob": 1,
+            "Bobbienchen": 0
+        },
+        "guesses": {
+            "Bobbins": 0,
+            "Bob": 2,
+            "Bobbienchen": 1
+        },
+    },
+]

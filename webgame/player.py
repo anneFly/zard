@@ -1,12 +1,14 @@
+import time
+
 from .exceptions import GameException
 
 
 class Player:
-    def __init__(self, user, name):
+    def __init__(self, user):
         self.hand = []
-        self.name = name
         self.tricks = []
         self.user = user
+        self.name = user.name or 'player{}'.format(time.time())
 
     def __repr__(self):
         return self.name
@@ -37,7 +39,7 @@ class Player:
 
 def init_players(users):
     players = []
-    for n in users:
-        players.append(Player(n[0], n[1]))
+    for u in users:
+        players.append(Player(u))
 
     return players

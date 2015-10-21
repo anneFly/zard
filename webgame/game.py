@@ -1,7 +1,8 @@
 import json
+import time
 
 from . import card
-from . import player
+from .player import init_players
 from .turn import Turn
 from .score import Score
 from .exceptions import GameException
@@ -23,12 +24,22 @@ LEVELS = {
 
 
 class Game:
-    def __init__(self):
+    def __init__(self, name, size):
+        self.id = str(str(time.time) + name).replace('.', '')
+        self.name = name
+        self.size = size
+        self.users = []
+
+        self.initialize()
+
+    def initialize(self):
         self.level = 1
         self.trump = None
         self.deck = card.generate_deck()
-        self.users = []
         self.players = []
+        self.active_player = None
+        self.turn = None
+        self.last_winner = None
         self.score = Score()
         self.state = 'WAITING_FOR_PLAYERS'
 
@@ -36,21 +47,27 @@ class Game:
     def num_players(self):
         return len(self.players)
 
-    def add_user(self, user, name):
-        self.users.append((user, name,))
-        # user.broadcast([user], json.dumps(['message', 'You are {}.'.format(name)]))
+    def add_user(self, user):
+        self.users.append(user)
+        if len(self.users) == self.size:
+            self.start_game()
 
-    def notify_player_to_guess(self):
-        self.active_player.user.broadcast(
-            [self.active_player.user],
-            json.dumps(['message', 'it\'s your turn. Make your guess.'])
-        )
+    def remove_user(self, user):
+        idx = self.users.index(user)
+        self.users.pop(idx)
+        self.cancel_game()
 
-    def notify_player_to_play(self):
-        self.active_player.user.broadcast(
-            [self.active_player.user],
-            json.dumps(['message', 'it\'s your turn. Play a card.'])
-        )
+    # def notify_player_to_guess(self):
+    #     self.active_player.user.broadcast(
+    #         [self.active_player.user],
+    #         json.dumps(['message', 'it\'s your turn. Make your guess.'])
+    #     )
+    #
+    # def notify_player_to_play(self):
+    #     self.active_player.user.broadcast(
+    #         [self.active_player.user],
+    #         json.dumps(['message', 'it\'s your turn. Play a card.'])
+    #     )
 
     def starters(self, start_idx):
         for p in self.players[start_idx:]:
@@ -79,10 +96,14 @@ class Game:
 
     def start_game(self):
         self.state = 'STARTED'
-        self.players = player.init_players(self.users)
+        self.players = init_players(self.users)
         self.start_level()
 
     def start_level(self):
+        self.users[0].broadcast(
+            self.users,
+            self.serialize()
+        )
         # self.users[0][0].broadcast(
         #     [u[0] for u in self.users],
         #     json.dumps(['message', 'starting level {}'.format(self.level)])
@@ -104,7 +125,7 @@ class Game:
     def start_guessing(self):
         self.state = 'GUESSING'
         self.active_player = next(self.ordered_players)
-        self.notify_player_to_guess()
+        # self.notify_player_to_guess()
 
     def on_guess(self, user, guess):
         if not self.state == 'GUESSING':
@@ -114,7 +135,7 @@ class Game:
             self.score.guess_tricks(self.active_player, guess)
             try:
                 self.active_player = next(self.ordered_players)
-                self.notify_player_to_guess()
+                # self.notify_player_to_guess()
             except StopIteration:
                 self.start_round()
         else:
@@ -130,7 +151,7 @@ class Game:
         self.turn = Turn()
         self.ordered_players = self.starters(self.get_turn_starter())
         self.active_player = next(self.ordered_players)
-        self.notify_player_to_play()
+        # self.notify_player_to_play()
 
     def on_play_card(self, user, card_id):
         if not self.state == 'PLAYING':
@@ -159,7 +180,7 @@ class Game:
     def next_player(self):
         try:
             self.active_player = next(self.ordered_players)
-            self.notify_player_to_play()
+            # self.notify_player_to_play()
         except StopIteration:
             self.end_turn()
 
@@ -195,3 +216,23 @@ class Game:
         #     [u[0] for u in self.users],
         #     json.dumps(['finalscore', str(self.score.score)])
         # )
+
+    def cancel_game(self):
+        self.initialize()
+
+    def serialize(self):
+        return json.dumps([
+            'gameState',
+            {
+                'state': self.state,
+                'level': self.level,
+                'players': [p.name for p in self.players],
+                'trump': self.trump.id if self.trump else None,
+                'activePlayer': self.active_player.name if self.active_player else None,
+                'pile': [c.id for c in self.turn.pile] if self.turn else [],
+                'lastWinner': self.last_winner.name if self.last_winner else None,
+                'score': {p.name: score for p, score in self.score.score.items()},
+                'tricks': {p.name: tricks for p, tricks in self.score.tricks.items()},
+                'guesses': {p.name: guess for p, guess in self.score.guesses.items()},
+            },
+        ])
