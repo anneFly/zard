@@ -1,5 +1,3 @@
-import time
-
 from .exceptions import GameException
 
 
@@ -8,7 +6,7 @@ class Player:
         self.hand = []
         self.tricks = []
         self.user = user
-        self.name = user.name or 'player{}'.format(time.time())
+        self.name = user.name
 
     def __repr__(self):
         return self.name
