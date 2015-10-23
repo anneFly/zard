@@ -1,4 +1,5 @@
 import json
+from unittest import mock
 
 from zard import GameConnection, games
 from webgame.exceptions import GameException
@@ -9,13 +10,31 @@ class MockInfo:
 
 
 class MockConnection(GameConnection):
-    def broadcast(self, to, msg):
-        print('{} {}'.format(to[0].name, msg))
+    def __init__(self):
+        self.log = []
+
+    def send(self, msg):
+        entry = '{} {}'.format(self.name, msg)
+        self.log.append(entry)
+        print(entry)
+
+    def broadcast(self, recipients, msg):
+        names = ', '.join([u.name for u in recipients])
+        entry = '{} {}'.format(names, msg)
+        self.log.append(entry)
+        print(entry)
+
+    @property
+    def last_log(self):
+        try:
+            return self.log[-1]
+        except IndexError:
+            return None
 
 
-connection0 = MockConnection(None)
-connection1 = MockConnection(None)
-connection2 = MockConnection(None)
+connection0 = MockConnection(mock.Mock())
+connection1 = MockConnection(mock.Mock())
+connection2 = MockConnection(mock.Mock())
 
 connection0.on_open(MockInfo())
 connection1.on_open(MockInfo())

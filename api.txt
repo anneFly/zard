@@ -6,26 +6,40 @@ Send
 
 rename:
 ["rename", str:name]
+name: name of the player, min 3 characters, max 35 characters
 ["rename", "Bobbins"]
 
 create game:
 ["createGame", str:game_name, int:size]
+game_name: name of your game, min 3 characters, max 35 characters
+size: number of players, between 3 and 6
+Example:
 ["createGame", "my awesome game", 3]
 
 join game:
 ["joinGame", str:game_id]
-["joinGame", "somegameid"]
+game_id: id of the game
+Example:
+["joinGame", "123gameid"]
 
 leave game:
 ["leaveGame"]
 
 guess:
 ["guess", int:guess]
+guess: number of tricks you expect to get for this round
+Example:
 ["guess", 4]
 
 play:
 ["play", str:card_id]
+card_id: id of the card you want to play.
+Example:
 ["play", "13r"]
+
+!!!
+Card ids consist of the card's value plus the first letter of it's color.
+E.g. '13g' for green 13. 'Zy' for yellow Zard. 'Nb' for blue Nerd. '1r' for red 1.
 
 
 Receive
@@ -37,6 +51,7 @@ game status:
     {
         "state": str:state,
         "level": int:level,
+        "maxLevel": int:max_level
         "players": [str:player_name, str:player_name, ...],
         "trump": str:trump_id or null,
         "activePlayer": str:player_name or null,
@@ -45,22 +60,29 @@ game status:
         "score": {str:player_name: int:score, ...},
         "tricks": {str:player_name: int:tricks, ...},
         "guesses": {str:player_name: int:guess, ...},
+        "hand": [str:card_id, ...] or []
     },
 ]
+state: one of those states: 'WAITING_FOR_PLAYERS', 'STARTED', 'GUESSING', 'PLAYING', 'END'
+level: current level
+max_level: number of levels to play. 10/12/15/20 for 6/5/4/3 players.
+trump_id: card id of the trump card
+
+Example:
 [
     "gameState",
     {
         "state": 'PLAYING',
-        "level": 2,
+        "level": 3,
         "players": ["Bobbins", "Bob", "Bobbienchen"],
         "trump": "4g",
         "activePlayer": "Bobbins",
         "pile": ['3r', "Zr"],
         "lastWinner": "Bob",
         "score": {
-            "Bobbins": 30,
-            "Bob": -10,
-            "Bobbienchen": 20
+            "Bobbins": 20,
+            "Bob": -20,
+            "Bobbienchen": 40
         },
         "tricks": {
             "Bobbins": 0,
@@ -72,5 +94,40 @@ game status:
             "Bob": 2,
             "Bobbienchen": 1
         },
+        "hand": ['4r', 'Ny']
     },
+]
+
+
+lobby status:
+[
+    "lobby",
+    {
+        "numUsers": int:num_users,
+        "users": [str:user_name, ...],
+        "games": [
+            {
+                str:game_id: str:game_name,
+                "size": int:size,
+                "status": str:game_state,
+                "users": [str:user_name, ...],
+            }, ...
+        ]
+    }
+]
+Example:
+[
+    "lobby",
+    {
+        "numUsers": 4,
+        "users": ["Bob", "Bobbins", "Bobbienchen", "B o b"],
+        "games": [
+            {
+                12345bobs_game: str:game_name,
+                "size": 3,
+                "status": "WAITING_FOR_PLAYERS",
+                "users": ["Bob", "Bobbienchen"],
+            }
+        ]
+    }
 ]
