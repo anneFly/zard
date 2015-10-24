@@ -3,6 +3,7 @@ class Turn:
         self.pile = []
 
     def get_serving_color(self):
+        """Return the color of the first non-Z and non-N card in the pile."""
         serving_color = None
         for card in self.pile:
             if card.value in ['Z', 'N']:
@@ -13,16 +14,17 @@ class Turn:
         return serving_color
 
     def highest_card(self, color):
+        """Return the highest card of the given color in the pile."""
         def highest_value(c):
             if c.color == color and c.value != 'N':
                 return c.value
-            else:
-                return 0
+            return 0
 
         return max(self.pile, key=highest_value)
 
     def winner(self, trump_color):
-        # if Zard in pile --> first zard wins
+        """Return the player that gets the trick."""
+        # if zard in pile --> first zard wins
         for played_card in self.pile:
             if played_card.value == 'Z':
                 return played_card.owner

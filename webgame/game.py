@@ -15,13 +15,6 @@ LEVELS = {
     6: 10,
 }
 
-# GAME_STATES:
-#     'WAITING_FOR_PLAYERS',
-#     'STARTED',
-#     'GUESSING',
-#     'PLAYING',
-#     'END',
-
 
 class Game:
     def __init__(self, name, size):
@@ -30,9 +23,9 @@ class Game:
         self.size = size
         self.users = []
 
-        self.initialize()
+        self.setup()
 
-    def initialize(self):
+    def setup(self):
         self.level = 1
         self.trump = None
         self.deck = card.generate_deck()
@@ -48,6 +41,9 @@ class Game:
         return len(self.players)
 
     def add_user(self, user):
+        if self.num_players >= self.size:
+            raise GameException('This game is already full.')
+
         self.users.append(user)
         if len(self.users) == self.size:
             self.start_game()
@@ -59,9 +55,7 @@ class Game:
 
     def send_state(self):
         for player in self.players:
-            player.user.send(
-                self.serialize(player)
-            )
+            player.user.send(self.serialize(player))
 
     def starters(self, start_idx):
         for p in self.players[start_idx:]:
@@ -73,10 +67,10 @@ class Game:
         self.deck = card.generate_deck()
         for p in self.players:
             p.hand = []
-            for i in range(self.level):
-                card_ = self.deck.pop()
-                card_.owner = p
-                p.hand.append(card_)
+            for _ in range(self.level):
+                c = self.deck.pop()
+                c.owner = p
+                p.hand.append(c)
 
         self.trump = self.deck.pop() if self.deck else None
 
@@ -84,7 +78,7 @@ class Game:
         return (self.level - 1) % self.num_players
 
     def get_turn_starter(self):
-        if self.last_winner is not None:
+        if self.last_winner:
             return self.players.index(self.last_winner)
         return self.get_start_index()
 
@@ -138,25 +132,25 @@ class Game:
         if not self.state == 'PLAYING':
             raise GameException('Not the time to play.')
 
-        if self.active_player.user == user:
-            card = self.active_player.play_card(card_id)
-            can_serve = self.active_player.can_serve(self.turn.get_serving_color())
+        if self.active_player.user != user:
+            raise GameException('It\'s not your turn.')
 
-            # zards and nerds can always be played
-            if card.value in ['Z', 'N'] or not can_serve:
+        card = self.active_player.play_card(card_id)
+        can_serve = self.active_player.can_serve(self.turn.get_serving_color())
+
+        # zards and nerds can always be played
+        if card.value in ['Z', 'N'] or not can_serve:
+            self.turn.pile.append(card)
+            self.next_player()
+
+        elif can_serve:
+            if card.color == self.turn.get_serving_color():
                 self.turn.pile.append(card)
                 self.next_player()
-
-            elif can_serve:
-                if card.color == self.turn.get_serving_color():
-                    self.turn.pile.append(card)
-                    self.next_player()
-                else:
-                    # cannot play this card
-                    self.active_player.hand.insert(card.hand_idx, card)
-                    raise GameException('You cannot play this card.')
-        else:
-            raise GameException('It\'s not your turn.')
+            else:
+                # cannot play this card
+                self.active_player.hand.insert(card.hand_idx, card)
+                raise GameException('You cannot play this card.')
 
         self.send_state()
 
@@ -192,7 +186,8 @@ class Game:
         self.send_state()
 
     def cancel_game(self):
-        self.initialize()
+        self.setup()
+        self.send_state()
 
     def serialize(self, player):
         return json.dumps([

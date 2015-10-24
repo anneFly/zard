@@ -1,133 +1,167 @@
-API
-===
+JSON API
+========
 
 Send
 -----
 
 rename:
-["rename", str:name]
-name: name of the player, min 3 characters, max 35 characters
-["rename", "Bobbins"]
+    ["rename", {"name": name}]
+
+    name: (str) name of the player, min 3 characters, max 35 characters
+
+    Example:
+    ["rename", {"name": "Bobbins"}]
+
 
 create game:
-["createGame", str:game_name, int:size]
-game_name: name of your game, min 3 characters, max 35 characters
-size: number of players, between 3 and 6
-Example:
-["createGame", "my awesome game", 3]
+    ["createGame", {"name": game_name, "size": size}]
+
+    game_name: (str) name of your game, min 3 characters, max 35 characters
+    size: (int) number of players, between 3 and 6
+
+    Example:
+    ["createGame", {"name": "my awesome game", "size": 3}]
+
 
 join game:
-["joinGame", str:game_id]
-game_id: id of the game
-Example:
-["joinGame", "123gameid"]
+    ["joinGame", {"id": game_id}]
+
+    game_id: id of the game
+
+    Example:
+    ["joinGame", {"id": "123gameid"}]
+
 
 leave game:
-["leaveGame"]
+    ["leaveGame"]
+
+    leave the game you are currently in
+
 
 guess:
-["guess", int:guess]
-guess: number of tricks you expect to get for this round
-Example:
-["guess", 4]
+    ["guess", {"guess": guess}]
+
+    guess: (int) number of tricks you expect to get for this round
+
+    Example:
+    ["guess", {"guess": 2}]
+
 
 play:
-["play", str:card_id]
-card_id: id of the card you want to play.
-Example:
-["play", "13r"]
+    ["play", {"card": card_id}]
+
+    card_id: (str) id of the card you want to play.
+
+    Example:
+    ["play", {"card": "13r"}]
+
 
 !!!
-Card ids consist of the card's value plus the first letter of it's color.
-E.g. '13g' for green 13. 'Zy' for yellow Zard. 'Nb' for blue Nerd. '1r' for red 1.
+    Card ids consist of the card's value plus the first letter of it's color.
+    E.g. '13g' for green 13. 'Zy' for yellow Zard. 'Nb' for blue Nerd. '1r' for red 1.
 
 
 Receive
 -------
 
 game status:
-[
-    "gameState",
-    {
-        "state": str:state,
-        "level": int:level,
-        "maxLevel": int:max_level
-        "players": [str:player_name, str:player_name, ...],
-        "trump": str:trump_id or null,
-        "activePlayer": str:player_name or null,
-        "pile": [str:card_id, str:card_id, ...] or [],
-        "lastWinner": str:player_name or null,
-        "score": {str:player_name: int:score, ...},
-        "tricks": {str:player_name: int:tricks, ...},
-        "guesses": {str:player_name: int:guess, ...},
-        "hand": [str:card_id, ...] or []
-    },
-]
-state: one of those states: 'WAITING_FOR_PLAYERS', 'STARTED', 'GUESSING', 'PLAYING', 'END'
-level: current level
-max_level: number of levels to play. 10/12/15/20 for 6/5/4/3 players.
-trump_id: card id of the trump card
+    [
+        "gameState",
+        {
+            "state": state,
+            "level": level,
+            "maxLevel": max_level
+            "players": [player_name, player_name, ...],
+            "trump": trump_id or null,
+            "activePlayer": player_name or null,
+            "pile": [card_id, card_id, ...] or [],
+            "lastWinner": player_name or null,
+            "score": {player_name: score, ...},
+            "tricks": {player_name: tricks, ...},
+            "guesses": {player_name: guess, ...},
+            "hand": [card_id, ...] or []
+        },
+    ]
 
-Example:
-[
-    "gameState",
-    {
-        "state": 'PLAYING',
-        "level": 3,
-        "players": ["Bobbins", "Bob", "Bobbienchen"],
-        "trump": "4g",
-        "activePlayer": "Bobbins",
-        "pile": ['3r', "Zr"],
-        "lastWinner": "Bob",
-        "score": {
-            "Bobbins": 20,
-            "Bob": -20,
-            "Bobbienchen": 40
+    state: (str) one of those states: 'WAITING_FOR_PLAYERS', 'STARTED', 'GUESSING', 'PLAYING', 'END'
+    level: (int) current level
+    max_level: (int) number of levels to play. 10/12/15/20 for 6/5/4/3 players.
+    trump_id: (str) card id of the trump card
+    score: (int) overall game score for the player
+    tricks: (int) amount of tricks for the player for the current round
+    guesses: (int) player's guess for the current level
+
+    Example:
+    [
+        "gameState",
+        {
+            "state": 'PLAYING',
+            "level": 3,
+            "players": ["Bobbins", "Bob", "Bobbienchen"],
+            "trump": "4g",
+            "activePlayer": "Bobbins",
+            "pile": ['3r', "Zr"],
+            "lastWinner": "Bob",
+            "score": {
+                "Bobbins": 20,
+                "Bob": -20,
+                "Bobbienchen": 40
+            },
+            "tricks": {
+                "Bobbins": 0,
+                "Bob": 1,
+                "Bobbienchen": 0
+            },
+            "guesses": {
+                "Bobbins": 0,
+                "Bob": 2,
+                "Bobbienchen": 1
+            },
+            "hand": ['4r', 'Ny']
         },
-        "tricks": {
-            "Bobbins": 0,
-            "Bob": 1,
-            "Bobbienchen": 0
-        },
-        "guesses": {
-            "Bobbins": 0,
-            "Bob": 2,
-            "Bobbienchen": 1
-        },
-        "hand": ['4r', 'Ny']
-    },
-]
+    ]
 
 
 lobby status:
-[
-    "lobby",
-    {
-        "numUsers": int:num_users,
-        "users": [str:user_name, ...],
-        "games": [
-            {
-                str:game_id: str:game_name,
-                "size": int:size,
-                "status": str:game_state,
-                "users": [str:user_name, ...],
-            }, ...
-        ]
-    }
-]
-Example:
-[
-    "lobby",
-    {
-        "numUsers": 4,
-        "users": ["Bob", "Bobbins", "Bobbienchen", "B o b"],
-        "games": [
-            {
-                12345bobs_game: str:game_name,
-                "size": 3,
-                "status": "WAITING_FOR_PLAYERS",
-                "users": ["Bob", "Bobbienchen"],
-            }
-        ]
-    }
-]
+    [
+        "lobby",
+        {
+            "users": [user_name, ...],
+            "games": [
+                {
+                    game_id: game_name,
+                    "size": size,
+                    "status": state,
+                    "users": [user_name, ...],
+                }, ...
+            ]
+        }
+    ]
+
+    state: (str) one of those states: 'WAITING_FOR_PLAYERS', 'STARTED', 'GUESSING', 'PLAYING', 'END'
+    size: (int) number of players for this game
+
+    Example:
+    [
+        "lobby",
+        {
+            "users": ["Bob", "Bobbins", "Bobbienchen", "B o b"],
+            "games": [
+                {
+                    12345bobs_game: str:game_name,
+                    "size": 3,
+                    "status": "WAITING_FOR_PLAYERS",
+                    "users": ["Bob", "Bobbienchen"],
+                }
+            ]
+        }
+    ]
+
+
+errors:
+    ["error": {"msg": mesage}]
+
+    message: (str) error message
+
+    Example:
+    ["error": {"msg": "You must provide a name for your game."}]

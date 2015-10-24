@@ -8,7 +8,7 @@ class Score:
         self.tricks = Counter()
 
     def guess_tricks(self, player, guess):
-        self.guesses[player] = int(guess)
+        self.guesses[player] = guess
 
     def reset_round_score(self):
         self.trick_counter = Counter()

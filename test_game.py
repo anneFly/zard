@@ -2,7 +2,6 @@ import json
 from unittest import mock
 
 from zard import GameConnection, games
-from webgame.exceptions import GameException
 
 
 class MockInfo:
@@ -10,19 +9,18 @@ class MockInfo:
 
 
 class MockConnection(GameConnection):
-    def __init__(self):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.log = []
 
     def send(self, msg):
         entry = '{} {}'.format(self.name, msg)
         self.log.append(entry)
-        print(entry)
 
     def broadcast(self, recipients, msg):
         names = ', '.join([u.name for u in recipients])
         entry = '{} {}'.format(names, msg)
         self.log.append(entry)
-        print(entry)
 
     @property
     def last_log(self):
@@ -40,16 +38,16 @@ connection0.on_open(MockInfo())
 connection1.on_open(MockInfo())
 connection2.on_open(MockInfo())
 
-connection0.on_message(json.dumps(['rename', 'player0']))
-connection1.on_message(json.dumps(['rename', 'player1']))
-connection2.on_message(json.dumps(['rename', 'player2']))
+connection0.on_message(json.dumps(['rename', {'name': 'Player0'}]))
+connection1.on_message(json.dumps(['rename', {'name': 'Player1'}]))
+connection2.on_message(json.dumps(['rename', {'name': 'Player2'}]))
 
-connection0.on_message(json.dumps(['createGame', 'my game', 3]))
+connection0.on_message(json.dumps(['createGame', {'name': 'my game', 'size': 3}]))
 assert len(games) == 1
 game_id = list(games.keys())[0]
 gg = games[game_id]
-connection1.on_message(json.dumps(['joinGame', game_id]))
-connection2.on_message(json.dumps(['joinGame', game_id]))
+connection1.on_message(json.dumps(['joinGame', {'id': game_id}]))
+connection2.on_message(json.dumps(['joinGame', {'id': game_id}]))
 
 assert len(gg.players) == 3
 assert gg.level == 1
@@ -71,15 +69,15 @@ gg.trump.value = 1
 gg.trump.id = '1g'
 
 assert gg.active_player == gg.players[0]
-connection0.on_message(json.dumps(['guess', 0]))
+connection0.on_message(json.dumps(['guess', {'guess': 0}]))
 assert gg.score.guesses[gg.players[0]] == 0
 
 assert gg.active_player == gg.players[1]
-connection1.on_message(json.dumps(['guess', 1]))
+connection1.on_message(json.dumps(['guess', {'guess': 1}]))
 assert gg.score.guesses[gg.players[1]] == 1
 
 assert gg.active_player == gg.players[2]
-connection2.on_message(json.dumps(['guess', 1]))
+connection2.on_message(json.dumps(['guess', {'guess': 1}]))
 assert gg.score.guesses[gg.players[2]] == 1
 
 assert gg.last_winner is None
@@ -87,7 +85,7 @@ assert gg.turns_to_play == 1
 
 
 assert gg.active_player == gg.players[0]
-connection0.on_message(json.dumps(['play', '2r']))
+connection0.on_message(json.dumps(['play', {'card': '2r'}]))
 assert gg.turn.pile[-1].value == 2
 assert gg.turn.pile[-1].color == 'red'
 assert gg.turn.pile[-1].owner == gg.players[0]
@@ -95,13 +93,13 @@ assert gg.turn.pile[-1].owner == gg.players[0]
 assert gg.turn.get_serving_color() == 'red'
 
 assert gg.active_player == gg.players[1]
-connection1.on_message(json.dumps(['play', '13b']))
+connection1.on_message(json.dumps(['play', {'card': '13b'}]))
 assert gg.turn.pile[-1].value == 13
 assert gg.turn.pile[-1].color == 'blue'
 assert gg.turn.pile[-1].owner == gg.players[1]
 
 assert gg.active_player == gg.players[2]
-connection2.on_message(json.dumps(['play', '7r']))
+connection2.on_message(json.dumps(['play', {'card': '7r'}]))
 assert gg.turn.pile[-1].value == 7
 assert gg.turn.pile[-1].color == 'red'
 assert gg.turn.pile[-1].owner == gg.players[2]
@@ -141,15 +139,15 @@ gg.trump.value = 1
 gg.trump.id = '1r'
 
 assert gg.active_player == gg.players[1]
-connection1.on_message(json.dumps(['guess', 2]))
+connection1.on_message(json.dumps(['guess', {'guess': 2}]))
 assert gg.score.guesses[gg.players[1]] == 2
 
 assert gg.active_player == gg.players[2]
-connection2.on_message(json.dumps(['guess', 2]))
+connection2.on_message(json.dumps(['guess', {'guess': 2}]))
 assert gg.score.guesses[gg.players[2]] == 2
 
 assert gg.active_player == gg.players[0]
-connection0.on_message(json.dumps(['guess', 1]))
+connection0.on_message(json.dumps(['guess', {'guess': 1}]))
 assert gg.score.guesses[gg.players[0]] == 1
 
 
@@ -158,30 +156,26 @@ assert gg.get_start_index() == 1
 assert gg.turns_to_play == 2
 
 assert gg.active_player == gg.players[1]
-connection1.on_message(json.dumps(['play', '13b']))
+connection1.on_message(json.dumps(['play', {'card': '13b'}]))
 
 assert gg.turn.get_serving_color() == 'blue'
 
 # try to play card that is not on the hand
 assert gg.active_player == gg.players[2]
-try:
-    connection2.on_message(json.dumps(['play', '3r']))
-except GameException as e:
-    print(e.message)
+connection2.on_message(json.dumps(['play', {'card': '3r'}]))
+assert 'You don\'t have this card on your hand.' in connection2.last_log
 
 # try to play trump even though player can serve
 assert gg.active_player == gg.players[2]
-try:
-    connection2.on_message(json.dumps(['play', '7r']))
-except GameException as e:
-    print(e.message)
+connection2.on_message(json.dumps(['play', {'card': '7r'}]))
+assert 'You cannot play this card.' in connection2.last_log
 
 # finally play a correct card
 assert gg.active_player == gg.players[2]
-connection2.on_message(json.dumps(['play', '3b']))
+connection2.on_message(json.dumps(['play', {'card': '3b'}]))
 
 assert gg.active_player == gg.players[0]
-connection0.on_message(json.dumps(['play', 'Zy']))
+connection0.on_message(json.dumps(['play', {'card': 'Zy'}]))
 
 assert gg.score.trick_counter[gg.players[0]] == 1
 assert gg.score.trick_counter[gg.players[1]] == 0
@@ -192,17 +186,17 @@ assert gg.get_turn_starter() == 0
 assert gg.turns_to_play == 1
 
 assert gg.active_player == gg.players[0]
-connection0.on_message(json.dumps(['play', 'Nb']))
+connection0.on_message(json.dumps(['play', {'card': 'Nb'}]))
 
 assert gg.turn.get_serving_color() is None
 
 assert gg.active_player == gg.players[1]
-connection1.on_message(json.dumps(['play', '13y']))
+connection1.on_message(json.dumps(['play', {'card': '13y'}]))
 
 assert gg.turn.get_serving_color() == 'yellow'
 
 assert gg.active_player == gg.players[2]
-connection2.on_message(json.dumps(['play', '7r']))
+connection2.on_message(json.dumps(['play', {'card': '7r'}]))
 
 
 assert gg.score.score[gg.players[0]] == 50
@@ -241,23 +235,24 @@ gg.players[2].hand[0].id = 'Nr'
 gg.players[2].hand[1].color = 'red'
 gg.players[2].hand[1].value = 'Z'
 gg.players[2].hand[1].id = 'Zr'
-gg.players[2].hand[2].color = 'green'
+gg.players[2].hand[2].color = 'yellow'
 gg.players[2].hand[2].value = 13
-gg.players[2].hand[2].id = '13g'
-gg.trump.color = 'red'
-gg.trump.value = 1
-gg.trump.id = '1r'
+gg.players[2].hand[2].id = '13y'
+# test zard as trump --> no trump color
+gg.trump.color = 'green'
+gg.trump.value = 'Z'
+gg.trump.id = 'Zg'
 
 assert gg.active_player == gg.players[2]
-connection2.on_message(json.dumps(['guess', 2]))
+connection2.on_message(json.dumps(['guess', {'guess': 2}]))
 assert gg.score.guesses[gg.players[2]] == 2
 
 assert gg.active_player == gg.players[0]
-connection0.on_message(json.dumps(['guess', 2]))
+connection0.on_message(json.dumps(['guess', {'guess': 2}]))
 assert gg.score.guesses[gg.players[0]] == 2
 
 assert gg.active_player == gg.players[1]
-connection1.on_message(json.dumps(['guess', 2]))
+connection1.on_message(json.dumps(['guess', {'guess': 2}]))
 assert gg.score.guesses[gg.players[1]] == 2
 
 
@@ -267,17 +262,17 @@ assert gg.turns_to_play == 3
 
 # test only nerds
 assert gg.active_player == gg.players[2]
-connection2.on_message(json.dumps(['play', 'Nr']))
+connection2.on_message(json.dumps(['play', {'card': 'Nr'}]))
 
 assert gg.turn.get_serving_color() is None
 
 assert gg.active_player == gg.players[0]
-connection0.on_message(json.dumps(['play', 'Ny']))
+connection0.on_message(json.dumps(['play', {'card': 'Ny'}]))
 
 assert gg.turn.get_serving_color() is None
 
 assert gg.active_player == gg.players[1]
-connection1.on_message(json.dumps(['play', 'Ng']))
+connection1.on_message(json.dumps(['play', {'card': 'Ng'}]))
 
 assert gg.score.trick_counter[gg.players[0]] == 0
 assert gg.score.trick_counter[gg.players[1]] == 0
@@ -289,17 +284,17 @@ assert gg.turns_to_play == 2
 
 # test only zards
 assert gg.active_player == gg.players[2]
-connection2.on_message(json.dumps(['play', 'Zr']))
+connection2.on_message(json.dumps(['play', {'card': 'Zr'}]))
 
 assert gg.turn.get_serving_color() is None
 
 assert gg.active_player == gg.players[0]
-connection0.on_message(json.dumps(['play', 'Zb']))
+connection0.on_message(json.dumps(['play', {'card': 'Zb'}]))
 
 assert gg.turn.get_serving_color() is None
 
 assert gg.active_player == gg.players[1]
-connection1.on_message(json.dumps(['play', 'Zy']))
+connection1.on_message(json.dumps(['play', {'card': 'Zy'}]))
 
 assert gg.score.trick_counter[gg.players[0]] == 0
 assert gg.score.trick_counter[gg.players[1]] == 0
@@ -311,19 +306,21 @@ assert gg.turns_to_play == 1
 
 
 assert gg.active_player == gg.players[2]
-connection2.on_message(json.dumps(['play', '13g']))
+connection2.on_message(json.dumps(['play', {'card': '13y'}]))
 
-assert gg.turn.get_serving_color() == 'green'
+assert gg.turn.get_serving_color() == 'yellow'
 
 assert gg.active_player == gg.players[0]
-connection0.on_message(json.dumps(['play', 'Nb']))
+connection0.on_message(json.dumps(['play', {'card': 'Nb'}]))
 
-assert gg.turn.get_serving_color() == 'green'
+assert gg.turn.get_serving_color() == 'yellow'
 
 assert gg.active_player == gg.players[1]
-connection1.on_message(json.dumps(['play', '6r']))
+connection1.on_message(json.dumps(['play', {'card': '6r'}]))
 
 
 assert gg.score.score[gg.players[0]] == 30
-assert gg.score.score[gg.players[1]] == -40
-assert gg.score.score[gg.players[2]] == 60
+assert gg.score.score[gg.players[1]] == -50
+assert gg.score.score[gg.players[2]] == 10
+
+print('All tests passed!')

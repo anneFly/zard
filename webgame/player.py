@@ -29,15 +29,11 @@ class Player:
             return False
 
         for card in self.hand:
-            if card.color == serving_color and card.value not in ["Z", "N"]:
+            if card.color == serving_color and card.value not in ['Z', 'N']:
                 return True
 
         return False
 
 
 def init_players(users):
-    players = []
-    for u in users:
-        players.append(Player(u))
-
-    return players
+    return [Player(u) for u in users]
