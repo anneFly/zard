@@ -17,6 +17,7 @@
 
     connection.onmessage = function (msg) {
         var data = JSON.parse(msg.data);
+        console.log(data)
 
         // TODO
     };
