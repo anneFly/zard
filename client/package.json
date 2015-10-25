@@ -1,0 +1,10 @@
+{
+  "name": "zard",
+  "version": "0.1.0",
+  "devDependencies": {
+    "grunt": "~0.4.5",
+    "grunt-browserify": "^4.0.1",
+    "grunt-contrib-compass": "^1.0.4",
+    "grunt-react": "^0.12.3"
+  }
+}
