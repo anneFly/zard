@@ -164,9 +164,11 @@ class GameConnection(SockJSConnection):
     def leave_game(self, **kwargs):
         if self.game:
             self.game.remove_user(self)
-        if len(self.game.users) == 0:
-            games.pop(self.game.id)
-        self.game = None
+
+            if len(self.game.users) == 0:
+                games.pop(self.game.id)
+
+            self.game = None
 
         self.broadcast(users, serialize_lobby_status())
 
@@ -180,6 +182,9 @@ class GameConnection(SockJSConnection):
             int(guess)
         except ValueError:
             raise GameException('This is not a valid guess.')
+
+        if int(guess) < 0:
+            raise GameException('Your guess cannot be a negative number.')
 
         if self.game:
             self.game.on_guess(self, int(guess))
