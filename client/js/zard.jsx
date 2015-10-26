@@ -1,3 +1,5 @@
+run = require('./app.jsx')
+
 
 var connection = new SockJS('http://' + window.location.host + '/sock');
 
@@ -22,3 +24,6 @@ connection.onmessage = function (msg) {
 
 // debug only
 window.connection = connection;
+
+
+run('test');
