@@ -68,6 +68,7 @@ game status:
     [
         "gameState",
         {
+            "name": name,
             "state": state,
             "level": level,
             "maxLevel": max_level
@@ -95,12 +96,13 @@ game status:
     [
         "gameState",
         {
-            "state": 'PLAYING',
+            "name": "FooGame"
+            "state": "PLAYING",
             "level": 3,
             "players": ["Bobbins", "Bob", "Bobbienchen"],
             "trump": "4g",
             "activePlayer": "Bobbins",
-            "pile": ['3r', "Zr"],
+            "pile": ["3r", "Zr"],
             "lastWinner": "Bob",
             "score": {
                 "Bobbins": 20,

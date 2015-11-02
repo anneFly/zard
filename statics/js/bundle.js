@@ -2,74 +2,122 @@
 var React = require('react');
 var ReactDOM = require('react-dom');
 var views = require('./views.jsx');
-var StateStore = require('./store.jsx');
 
 
-module.exports = function (elId) {
-  var store = new StateStore();
-  window.addEventListener('load', function () {
-    ReactDOM.render(
-        React.createElement(views.AppView, {store: store}),
-        document.getElementById(elId)
-    )
-  });
+module.exports = function (elId, store) {
+    window.addEventListener('load', function () {
+        ReactDOM.render(
+            React.createElement(views.AppView, {store: store}),
+            document.getElementById(elId)
+        );
+    });
 };
 
-},{"./store.jsx":2,"./views.jsx":3,"react":161,"react-dom":33}],2:[function(require,module,exports){
+},{"./views.jsx":3,"react":161,"react-dom":33}],2:[function(require,module,exports){
 var StateStore = function () {
-  this._callbacks = [];
-  this._state = null;
+  this._callback = undefined;
+  this.state = {};
 }
 
 StateStore.prototype = {
-  update: function (state) {
-    this._state = state;
-    this.trigger();
-  },
-  state: function () {
-    return this._state
+  updateState: function (stateType, state) {
+    this.state[stateType] = state;
+    if (this._callback) {
+        this._callback(this.state);
+    }
   },
   onUpdate: function (cb) {
-    this._callbacks.push(cb)
-  },
-  trigger: function () {
-    this._callbacks.each(function () {
-      fn.call(this, this.state);
-    });
+    this._callback = cb;
   }
-}
+};
 
 
-module.exports = StateStore
+module.exports = StateStore;
 
 },{}],3:[function(require,module,exports){
-var React= require('react');
+var React = require('react');
+
+var LobbyView = React.createClass({displayName: "LobbyView",
+    render: function () {
+        var state = this.props.data;
+        var actions = this.props.actions;
+        var onCreateGame = actions['onCreateGame'];
+        var numUsers, numGames;
+        if (state.users) {
+            numUsers = state.users.length;
+        }
+        if (state.games) {
+            numGames = state.games.length;
+        }
+        return (
+            React.createElement("div", null, 
+                "Number of users: ", numUsers, 
+                React.createElement("br", null), 
+                "Number of games: ", numGames, 
+                React.createElement("hr", null), 
+                React.createElement("button", {type: "button", onClick: onCreateGame}, "Create Game")
+            )
+        );
+    }
+});
+
+var GameView = React.createClass({displayName: "GameView",
+    render: function () {
+        var state = this.props.data
+
+        return (
+            React.createElement("div", null, 
+                "Game: ", state.name
+            )
+        );
+    }
+});
+
 
 module.exports.AppView = React.createClass({displayName: "AppView",
-  componentWillMount: function () {
-    this.props.store.onUpdate(this.render.bind(this));
-  },
-  componentWillUnmount: function () {
-    // TODO
-    // this.prop.store.off(...)
-  },
-  render: function () {
-    return (
-      React.createElement("div", null, 
-        "Hello world!"
-      )
-    );
-  }
-})
+    getInitialState: function() {
+        return {};
+    },
+    componentDidMount: function () {
+        this.props.store.onUpdate(this.setState.bind(this));
+        this.setActions();
+    },
+    setActions: function () {
+        this.actions = {
+            'onCreateGame': this.onCreateGame
+        }
+    },
+    onCreateGame: function (e) {
+        this.state.connection.send(JSON.stringify(['createGame', {name: 'my first game', 'size': 3}]));
+    },
+    render: function () {
+        var lobby, game;
+        if (this.state.gameState) {
+            game = React.createElement(GameView, {data: this.state.gameState})
+        }
+        else if (this.state.lobby) {
+            lobby = React.createElement(LobbyView, {data: this.state.lobby, actions: this.actions})
+        }
+        return (
+            React.createElement("div", null, 
+                lobby, 
+                game
+            )
+        );
+    }
+});
 
 },{"react":161}],4:[function(require,module,exports){
-run = require('./app.jsx')
+var StateStore = require('./store.jsx');
+var run = require('./app.jsx')
 
+var store = new StateStore();
+run('test', store);
 
 var connection = new SockJS('http://' + window.location.host + '/sock');
 
 connection.onopen = function (e) {
-    console.log('opened');
+    store.updateState('connection', connection);
 };
 
 connection.onclose = function (e) {
@@ -82,18 +130,23 @@ connection.onerror = function () {
 
 connection.onmessage = function (msg) {
     var data = JSON.parse(msg.data);
-    console.log(data)
+    var command = data[0];
 
-    // TODO
+    switch (command) {
+    case 'error':
+        alert(data[1].msg);
+        break;
+    default:
+        store.updateState(command, data[1]);
+        break;
+    }
+    console.log(data);
 };
 
 // debug only
 window.connection = connection;
 
-
-run('test');
-
-},{"./app.jsx":1}],5:[function(require,module,exports){
+},{"./app.jsx":1,"./store.jsx":2}],5:[function(require,module,exports){
 (function (process){
 /**
  * Copyright 2013-2015, Facebook, Inc.

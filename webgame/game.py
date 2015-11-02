@@ -193,6 +193,7 @@ class Game:
         return json.dumps([
             'gameState',
             {
+                'name': self.name,
                 'state': self.state,
                 'level': self.level,
                 'maxLevel': LEVELS[self.num_players],

@@ -1,25 +1,19 @@
 var StateStore = function () {
-  this._callbacks = [];
-  this._state = null;
+  this._callback = undefined;
+  this.state = {};
 }
 
 StateStore.prototype = {
-  update: function (state) {
-    this._state = state;
-    this.trigger();
-  },
-  state: function () {
-    return this._state
+  updateState: function (stateType, state) {
+    this.state[stateType] = state;
+    if (this._callback) {
+        this._callback(this.state);
+    }
   },
   onUpdate: function (cb) {
-    this._callbacks.push(cb)
-  },
-  trigger: function () {
-    this._callbacks.each(function () {
-      fn.call(this, this.state);
-    });
+    this._callback = cb;
   }
-}
+};
 
 
-module.exports = StateStore
+module.exports = StateStore;
