@@ -2,10 +2,15 @@ var React = require('react');
 
 
 var CreateGameMaskView = React.createClass({
+    onCreateGame: function (e) {
+        var $btn = $(e.currentTarget);
+        var $form = $btn.closest('form');
+        var name = $form.find('[name=gameName]').val();
+        var size = $form.find('[name=gameSize]').val();
+        this.props.connection.send(JSON.stringify(['createGame', {name: name, 'size': size}]));
+    },
     render: function () {
         var state = this.props.state;
-        var actions = this.props.actions;
-        var onCreateGame = actions['onCreateGame'];
         return (
             <div>
                 <form>
@@ -16,9 +21,39 @@ var CreateGameMaskView = React.createClass({
                         <option value="5">5 Players</option>
                         <option value="6">6 Players</option>
                     </select>
-                    <button type="button" onClick={onCreateGame}>Create</button>
+                    <button type="button" onClick={this.onCreateGame}>Create</button>
                 </form>
             </div>
+        );
+    }
+});
+
+var GameListItemView = React.createClass({
+    onJoinGame: function (e) {
+        var $btn = $(e.currentTarget);
+        var gameId = $btn.data('game-id');
+        this.props.connection.send(JSON.stringify(['joinGame', {id: gameId}]));
+    },
+    render: function() {
+        var data = this.props.data;
+        return (
+            <li>
+                {data.name} ({data.users.length}/{data.size})
+                <button type="button" data-game-id={data.id} onClick={this.onJoinGame}>Join Game</button>
+            </li>
+        );
+    }
+});
+
+var GameListView = React.createClass({
+    render: function() {
+        var connection = this.props.connection;
+        return (
+            <ul>
+            {this.props.data.map(function(result) {
+                return <GameListItemView key={result.id} data={result} connection={connection} />;
+            })}
+            </ul>
         );
     }
 });
@@ -37,16 +72,16 @@ var LobbyView = React.createClass({
             numUsers = data.users.length;
         }
         if (data.games) {
-            numGames = data.games.length;
+            gameListView = <GameListView data={data.games} connection={this.props.connection} />;
         }
         if (this.state.createGameMaskIsShown) {
-            createGameMask = <CreateGameMaskView actions={this.props.actions} />
+            createGameMask = <CreateGameMaskView connection={this.props.connection} />;
         }
         return (
             <div>
                 Number of users: {numUsers}
                 <br/>
-                Number of games: {numGames}
+                {gameListView}
                 <hr/>
                 <button type="button" onClick={this.toggleGameMask}>Create Game</button>
                 {createGameMask}
@@ -57,11 +92,15 @@ var LobbyView = React.createClass({
 
 var GameView = React.createClass({
     render: function () {
-        var state = this.props.data
+        var data = this.props.data;
 
         return (
             <div>
-                Game: {state.name}
+                You joined Game: {data.name}
+                <br/>
+                Status: {data.status}
+                <br/>
+                Players: {data.players}
             </div>
         );
     }
@@ -75,7 +114,6 @@ module.exports.AppView = React.createClass({
     componentDidMount: function () {
         this.props.store.onUpdate(this.setState.bind(this));
         this.setupConnection();
-        this.setActions();
     },
     setupConnection: function () {
         var that = this;
@@ -102,27 +140,16 @@ module.exports.AppView = React.createClass({
                 that.props.store.updateState(command, data);
                 break;
             }
+            console.log(message);
         };
-    },
-    setActions: function () {
-        this.actions = {
-            onCreateGame: this.onCreateGame
-        }
-    },
-    onCreateGame: function (e) {
-        var $btn = $(e.currentTarget);
-        var $form = $btn.closest('form');
-        var name = $form.find('[name=gameName]').val();
-        var size = $form.find('[name=gameSize]').val();
-        this.connection.send(JSON.stringify(['createGame', {name: name, 'size': size}]));
     },
     render: function () {
         var lobby, game;
         if (this.state.gameState) {
-            game = <GameView data={this.state.gameState} />
+            game = <GameView data={this.state.gameState} connection={this.connection} />
         }
         else if (this.state.lobby) {
-            lobby = <LobbyView data={this.state.lobby} actions={this.actions}/>
+            lobby = <LobbyView data={this.state.lobby} connection={this.connection} />
         }
         return (
             <div>

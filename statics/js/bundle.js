@@ -16,20 +16,20 @@ window.addEventListener('load', function () {
 
 },{"./store.jsx":2,"./views.jsx":3,"react":160,"react-dom":32}],2:[function(require,module,exports){
 var StateStore = function () {
-  this._callback = undefined;
-  this.state = {};
+    this._callback = undefined;
+    this.state = {};
 }
 
 StateStore.prototype = {
-  updateState: function (stateType, state) {
-    this.state[stateType] = state;
-    if (this._callback) {
-        this._callback(this.state);
+    updateState: function (stateType, state) {
+        this.state[stateType] = state;
+        if (this._callback) {
+            this._callback(this.state);
+        }
+    },
+    onUpdate: function (cb) {
+        this._callback = cb;
     }
-  },
-  onUpdate: function (cb) {
-    this._callback = cb;
-  }
 };
 
 
@@ -40,10 +40,15 @@ var React = require('react');
 
 
 var CreateGameMaskView = React.createClass({displayName: "CreateGameMaskView",
+    onCreateGame: function (e) {
+        var $btn = $(e.currentTarget);
+        var $form = $btn.closest('form');
+        var name = $form.find('[name=gameName]').val();
+        var size = $form.find('[name=gameSize]').val();
+        this.props.connection.send(JSON.stringify(['createGame', {name: name, 'size': size}]));
+    },
     render: function () {
         var state = this.props.state;
-        var actions = this.props.actions;
-        var onCreateGame = actions['onCreateGame'];
         return (
             React.createElement("div", null, 
                 React.createElement("form", null, 
@@ -54,8 +59,38 @@ var CreateGameMaskView = React.createClass({displayName: "CreateGameMaskView",
                         React.createElement("option", {value: "5"}, "5 Players"), 
                         React.createElement("option", {value: "6"}, "6 Players")
                     ), 
-                    React.createElement("button", {type: "button", onClick: onCreateGame}, "Create")
+                    React.createElement("button", {type: "button", onClick: this.onCreateGame}, "Create")
                 )
+            )
+        );
+    }
+});
+
+var GameListItemView = React.createClass({displayName: "GameListItemView",
+    onJoinGame: function (e) {
+        var $btn = $(e.currentTarget);
+        var gameId = $btn.data('game-id');
+        this.props.connection.send(JSON.stringify(['joinGame', {id: gameId}]));
+    },
+    render: function() {
+        var data = this.props.data;
+        return (
+            React.createElement("li", null, 
+                data.name, " (", data.users.length, "/", data.size, ")", 
+                React.createElement("button", {type: "button", "data-game-id": data.id, onClick: this.onJoinGame}, "Join Game")
+            )
+        );
+    }
+});
+
+var GameListView = React.createClass({displayName: "GameListView",
+    render: function() {
+        var connection = this.props.connection;
+        return (
+            React.createElement("ul", null, 
+            this.props.data.map(function(result) {
+                return React.createElement(GameListItemView, {key: result.id, data: result, connection: connection});
+            })
             )
         );
     }
@@ -75,16 +110,16 @@ var LobbyView = React.createClass({displayName: "LobbyView",
             numUsers = data.users.length;
         }
         if (data.games) {
-            numGames = data.games.length;
+            gameListView = React.createElement(GameListView, {data: data.games, connection: this.props.connection});
         }
         if (this.state.createGameMaskIsShown) {
-            createGameMask = React.createElement(CreateGameMaskView, {actions: this.props.actions})
+            createGameMask = React.createElement(CreateGameMaskView, {connection: this.props.connection});
         }
         return (
             React.createElement("div", null, 
                 "Number of users: ", numUsers, 
                 React.createElement("br", null), 
-                "Number of games: ", numGames, 
+                gameListView, 
                 React.createElement("hr", null), 
                 React.createElement("button", {type: "button", onClick: this.toggleGameMask}, "Create Game"), 
                 createGameMask
@@ -95,11 +130,15 @@ var LobbyView = React.createClass({displayName: "LobbyView",
 
 var GameView = React.createClass({displayName: "GameView",
     render: function () {
-        var state = this.props.data
+        var data = this.props.data;
 
         return (
             React.createElement("div", null, 
-                "Game: ", state.name
+                "You joined Game: ", data.name, 
+                React.createElement("br", null), 
+                "Status: ", data.status, 
+                React.createElement("br", null), 
+                "Players: ", data.players
             )
         );
     }
@@ -113,7 +152,6 @@ module.exports.AppView = React.createClass({displayName: "AppView",
     componentDidMount: function () {
         this.props.store.onUpdate(this.setState.bind(this));
         this.setupConnection();
-        this.setActions();
     },
     setupConnection: function () {
         var that = this;
@@ -140,27 +178,16 @@ module.exports.AppView = React.createClass({displayName: "AppView",
                 that.props.store.updateState(command, data);
                 break;
             }
+            console.log(message);
         };
-    },
-    setActions: function () {
-        this.actions = {
-            onCreateGame: this.onCreateGame
-        }
-    },
-    onCreateGame: function (e) {
-        var $btn = $(e.currentTarget);
-        var $form = $btn.closest('form');
-        var name = $form.find('[name=gameName]').val();
-        var size = $form.find('[name=gameSize]').val();
-        this.connection.send(JSON.stringify(['createGame', {name: name, 'size': size}]));
     },
     render: function () {
         var lobby, game;
         if (this.state.gameState) {
-            game = React.createElement(GameView, {data: this.state.gameState})
+            game = React.createElement(GameView, {data: this.state.gameState, connection: this.connection})
         }
         else if (this.state.lobby) {
-            lobby = React.createElement(LobbyView, {data: this.state.lobby, actions: this.actions})
+            lobby = React.createElement(LobbyView, {data: this.state.lobby, connection: this.connection})
         }
         return (
             React.createElement("div", null, 

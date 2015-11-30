@@ -131,7 +131,8 @@ lobby status:
             "users": [user_name, ...],
             "games": [
                 {
-                    game_id: game_name,
+                    "id": game_id,
+                    "name": game_name,
                     "size": size,
                     "status": state,
                     "users": [user_name, ...],
