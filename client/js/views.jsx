@@ -5,7 +5,7 @@ var CreateGameMaskView = React.createClass({
     render: function () {
         var state = this.props.state;
         var actions = this.props.actions;
-        var onCreateGame = actions['onCreateGame'];
+        var onCreateGame = actions.onCreateGame;
         return (
             <div>
                 <form>
@@ -19,6 +19,32 @@ var CreateGameMaskView = React.createClass({
                     <button type="button" onClick={onCreateGame}>Create</button>
                 </form>
             </div>
+        );
+    }
+});
+
+var GameListItemView = React.createClass({
+    render: function() {
+        var data = this.props.data;
+        var actions = this.props.actions;
+        return (
+            <li>
+                {data.name} ({data.users.length}/{data.size})
+                <button type="button" data-game-id={data.id} onClick={actions.onJoinGame}>Join Game</button>
+            </li>
+        );
+    }
+});
+
+var GameListView = React.createClass({
+    render: function() {
+        var actions = this.props.actions;
+        return (
+            <ul>
+            {this.props.data.map(function(result) {
+                return <GameListItemView key={result.id} data={result} actions={actions} />;
+            })}
+            </ul>
         );
     }
 });
@@ -37,16 +63,16 @@ var LobbyView = React.createClass({
             numUsers = data.users.length;
         }
         if (data.games) {
-            numGames = data.games.length;
+            gameListView = <GameListView data={data.games} actions={this.props.actions} />;
         }
         if (this.state.createGameMaskIsShown) {
-            createGameMask = <CreateGameMaskView actions={this.props.actions} />
+            createGameMask = <CreateGameMaskView actions={this.props.actions} />;
         }
         return (
             <div>
                 Number of users: {numUsers}
                 <br/>
-                Number of games: {numGames}
+                {gameListView}
                 <hr/>
                 <button type="button" onClick={this.toggleGameMask}>Create Game</button>
                 {createGameMask}
@@ -57,11 +83,17 @@ var LobbyView = React.createClass({
 
 var GameView = React.createClass({
     render: function () {
-        var state = this.props.data
+        var data = this.props.data;
+        var actions = this.props.actions;
 
         return (
             <div>
-                Game: {state.name}
+                You joined Game: {data.name}
+                <br/>
+                Status: {data.state}
+                <br/>
+                Users: {data.users}
+                <button type="button" onClick={actions.onLeaveGame}>leave game</button>
             </div>
         );
     }
@@ -102,11 +134,14 @@ module.exports.AppView = React.createClass({
                 that.props.store.updateState(command, data);
                 break;
             }
+            console.log(message);
         };
     },
     setActions: function () {
         this.actions = {
-            onCreateGame: this.onCreateGame
+            onCreateGame: this.onCreateGame,
+            onJoinGame: this.onJoinGame,
+            onLeaveGame: this.onLeaveGame
         }
     },
     onCreateGame: function (e) {
@@ -116,13 +151,21 @@ module.exports.AppView = React.createClass({
         var size = $form.find('[name=gameSize]').val();
         this.connection.send(JSON.stringify(['createGame', {name: name, 'size': size}]));
     },
+    onJoinGame: function (e) {
+        var $btn = $(e.currentTarget);
+        var gameId = $btn.data('game-id');
+        this.connection.send(JSON.stringify(['joinGame', {id: gameId}]));
+    },
+    onLeaveGame: function (e) {
+        this.connection.send(JSON.stringify(['leaveGame']));
+    },
     render: function () {
         var lobby, game;
         if (this.state.gameState) {
-            game = <GameView data={this.state.gameState} />
+            game = <GameView data={this.state.gameState} actions={this.actions} />
         }
         else if (this.state.lobby) {
-            lobby = <LobbyView data={this.state.lobby} actions={this.actions}/>
+            lobby = <LobbyView data={this.state.lobby} actions={this.actions} />
         }
         return (
             <div>

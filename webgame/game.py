@@ -47,6 +47,8 @@ class Game:
         self.users.append(user)
         if len(self.users) == self.size:
             self.start_game()
+        else:
+            self.send_state()
 
     def remove_user(self, user):
         idx = self.users.index(user)
@@ -54,8 +56,12 @@ class Game:
         self.cancel_game()
 
     def send_state(self):
-        for player in self.players:
-            player.user.send(self.serialize(player))
+        for idx, user in enumerate(self.users):
+            try:
+                player = self.players[idx]
+            except IndexError:
+                player = None
+            user.send(self.serialize(player))
 
     def starters(self, start_idx):
         for p in self.players[start_idx:]:
@@ -190,11 +196,13 @@ class Game:
         self.send_state()
 
     def serialize(self, player):
-        return json.dumps([
-            'gameState',
-            {
-                'name': self.name,
-                'state': self.state,
+        state = {
+            'name': self.name,
+            'state': self.state,
+            'users': [u.name for u in self.users],
+        }
+        if player:
+            state.update({
                 'level': self.level,
                 'maxLevel': LEVELS[self.num_players],
                 'players': [p.name for p in self.players],
@@ -205,6 +213,6 @@ class Game:
                 'score': {p.name: score for p, score in self.score.score.items()},
                 'tricks': {p.name: tricks for p, tricks in self.score.tricks.items()},
                 'guesses': {p.name: guess for p, guess in self.score.guesses.items()},
-                'hand': [c.id for c in player.hand],
-            },
-        ])
+                'hand': [c.id for c in player.hand] if player else [],
+            })
+        return json.dumps(['gameState', state])

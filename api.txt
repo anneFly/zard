@@ -70,6 +70,7 @@ game status:
         {
             "name": name,
             "state": state,
+            "users": [user_name, user_name, ...],
             "level": level,
             "maxLevel": max_level
             "players": [player_name, player_name, ...],
@@ -98,6 +99,7 @@ game status:
         {
             "name": "FooGame"
             "state": "PLAYING",
+            "users": ["Bobbins", "Bob", "Bobbienchen"],
             "level": 3,
             "players": ["Bobbins", "Bob", "Bobbienchen"],
             "trump": "4g",
@@ -131,7 +133,8 @@ lobby status:
             "users": [user_name, ...],
             "games": [
                 {
-                    game_id: game_name,
+                    "id": game_id,
+                    "name": game_name,
                     "size": size,
                     "status": state,
                     "users": [user_name, ...],
