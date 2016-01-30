@@ -1,10 +1,13 @@
 module.exports = function (grunt) {
     grunt.initConfig({
 
-        compass: {
+        less: {
             dev: {
                 options: {
-                    config: 'config.rb'
+                    compress: true
+                },
+                files: {
+                    'statics/css/styles.css': 'client/less/styles.less'
                 }
             }
         },
@@ -12,7 +15,7 @@ module.exports = function (grunt) {
         browserify: {
             dev: {
                 files: {
-                    '../statics/js/bundle.js': ['js/**/*.js', 'js/**/*.jsx']
+                    'statics/js/bundle.js': ['client/js/**/*.js', 'client/js/**/*.jsx']
                 },
                 options: {
                     transform:  [ require('grunt-react').browserify ]
@@ -22,17 +25,17 @@ module.exports = function (grunt) {
 
         watch: {
             scripts: {
-                files: ['js/**/*.jsx', 'scss/**/*.scss'],
+                files: ['client/js/**/*.jsx'],
                 tasks: ['build'],
             }
         }
 
     });
 
-    grunt.loadNpmTasks('grunt-contrib-compass');
+    grunt.loadNpmTasks('grunt-contrib-less');
     grunt.loadNpmTasks('grunt-browserify');
     grunt.loadNpmTasks('grunt-contrib-watch');
 
-    grunt.registerTask('build', ['compass', 'browserify']);
+    grunt.registerTask('build', ['browserify', 'less']);
 
 };
