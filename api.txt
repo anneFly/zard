@@ -153,12 +153,35 @@ lobby status:
             "users": ["Bob", "Bobbins", "Bobbienchen", "B o b"],
             "games": [
                 {
-                    12345bobs_game: str:game_name,
+                    "id": "game123",
+                    "name": "Bob's game",
                     "size": 3,
                     "status": "WAITING_FOR_PLAYERS",
                     "users": ["Bob", "Bobbienchen"],
                 }
             ]
+        }
+    ]
+
+
+user status:
+    [
+        "userState",
+        {
+            "userName": user_name,
+            "inGame": in_game
+        }
+    ]
+
+    user_name: (str) user's current name, users can rename themselves
+    in_game: (bool) user is in a game or not
+
+    Example:
+    [
+        "userState",
+        {
+            "userName": "Bobbins",
+            "inGame": false
         }
     ]
 

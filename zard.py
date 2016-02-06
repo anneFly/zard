@@ -37,6 +37,16 @@ def serialize_lobby_status():
     ])
 
 
+def serialize_user_status(user):
+    return json.dumps([
+        'userState',
+        {
+            'userName': user.name,
+            'inGame': bool(user.game),
+        }
+    ])
+
+
 class MainHandler(tornado.web.RequestHandler):
     def get(self):
         template_name = os.path.join(PROJECT_DIR, 'templates/zard.html')
@@ -58,9 +68,12 @@ class GameConnection(SockJSConnection):
         self.game = None
 
     def on_open(self, info):
-        self.id = str(str(time.time()) + str(info.ip)).replace('.', '').replace(':', '')
-        self.name = 'player_{}'.format(random.randint(10000, 99999))
+        self.id = str(str(time.time()) + str(info.ip))\
+            .replace('.', '')\
+            .replace(':', '')
+        self.name = ''
         users.add(self)
+        self.send(serialize_user_status(self))
         self.broadcast(users, serialize_lobby_status())
 
     def on_close(self):
@@ -105,6 +118,7 @@ class GameConnection(SockJSConnection):
 
         self.name = name
 
+        self.send(serialize_user_status(self))
         self.broadcast(users, serialize_lobby_status())
 
     def create_game(self, **kwargs):
@@ -118,10 +132,12 @@ class GameConnection(SockJSConnection):
             raise GameException('You must provide a size for your game.')
 
         if len(name) < 3:
-            raise GameException('The game name is too short (min 3 characters).')
+            raise GameException('The game name is too short (min 3 '
+                                'characters).')
 
         if len(name) > 35:
-            raise GameException('The game name is too long (max 35 characters).')
+            raise GameException('The game name is too long (max 35 '
+                                'characters).')
 
         try:
             int(size)
@@ -132,14 +148,15 @@ class GameConnection(SockJSConnection):
             raise GameException('The game size must be between 3 and 6.')
 
         if self.game is not None:
-            raise GameException('You already joined a game. Leave your current game '
-                                'to create a new one.')
+            raise GameException('You already joined a game. Leave your current'
+                                ' game to create a new one.')
 
         game = Game(name, int(size))
         game.add_user(self)
         self.game = game
         games[game.id] = game
 
+        self.send(serialize_user_status(self))
         self.broadcast(users, serialize_lobby_status())
 
     def join_game(self, **kwargs):
@@ -149,8 +166,8 @@ class GameConnection(SockJSConnection):
             raise GameException('No game id was provided.')
 
         if self.game is not None:
-            raise GameException('You already joined a game. Leave your current game '
-                                'to join a new one.')
+            raise GameException('You already joined a game. Leave your current'
+                                ' game to join a new one.')
         try:
             game = games[id]
         except KeyError:
@@ -159,6 +176,7 @@ class GameConnection(SockJSConnection):
         game.add_user(self)
         self.game = game
 
+        self.send(serialize_user_status(self))
         self.broadcast(users, serialize_lobby_status())
 
     def leave_game(self, **kwargs):
@@ -170,6 +188,7 @@ class GameConnection(SockJSConnection):
 
             self.game = None
 
+        self.send(serialize_user_status(self))
         self.broadcast(users, serialize_lobby_status())
 
     def guess(self, **kwargs):

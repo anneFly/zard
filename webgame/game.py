@@ -18,7 +18,9 @@ LEVELS = {
 
 class Game:
     def __init__(self, name, size):
-        self.id = str(str(time.time()) + name).replace('.', '').replace(' ', '_')
+        self.id = str(str(time.time()) + name)\
+            .replace('.', '')\
+            .replace(' ', '_')
         self.name = name
         self.size = size
         self.users = []
