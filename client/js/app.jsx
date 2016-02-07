@@ -58,7 +58,7 @@ var AppView = React.createClass({
         userView = <UserView {...this.state.userState} actions={this.actions} />
         if (this.state.userState.userName) {
             if (this.state.userState.inGame) {
-                gameView = <GameView {...this.state.gameState} actions={this.actions} />
+                gameView = <GameView {...this.state.gameState} userState={this.state.userState} actions={this.actions} />
             }
             else {
                 lobbyView = <LobbyView {...this.state.lobbyState} actions={this.actions} />

@@ -82,7 +82,7 @@ var AppView = React.createClass({displayName: "AppView",
         userView = React.createElement(UserView, React.__spread({},  this.state.userState, {actions: this.actions}))
         if (this.state.userState.userName) {
             if (this.state.userState.inGame) {
-                gameView = React.createElement(GameView, React.__spread({},  this.state.gameState, {actions: this.actions}))
+                gameView = React.createElement(GameView, React.__spread({},  this.state.gameState, {userState: this.state.userState, actions: this.actions}))
             }
             else {
                 lobbyView = React.createElement(LobbyView, React.__spread({},  this.state.lobbyState, {actions: this.actions}))
@@ -131,11 +131,65 @@ module.exports = StateStore;
 var React = require('react');
 
 
+var GuessingView = React.createClass({displayName: "GuessingView",
+    renderGuesses: function () {
+        var rows = [];
+        for (playerName in this.props.guesses) {
+            rows.push([playerName, this.props.guesses[playerName]]);
+        }
+        return (
+            React.createElement("div", null, 
+                React.createElement("hr", null), 
+                "Currently Guessing: ", this.props.activePlayer, React.createElement("br", null), 
+                React.createElement("table", null, 
+                    rows.map(function (row) {
+                        return (React.createElement("tr", {key: row[0]}, React.createElement("td", null, "row[0]"), React.createElement("td", null, "row[1]")))
+                    })
+                )
+            )
+        );
+    },
+    renderGuessMask: function () {
+        if (this.props.activePlayer == this.props.userState.userName) {
+            return (React.createElement("div", null, "todo gamemask"))
+        }
+    },
+    render: function () {
+        return (
+            React.createElement("div", null, 
+                this.renderGuesses(), 
+                this.renderGuessMask()
+            )
+        );
+    }
+});
+
+var PlayingView = React.createClass({displayName: "PlayingView",
+    render: function () {
+        return (React.createElement("div", null, "todo playing"));
+    }
+});
+
+var EndView = React.createClass({displayName: "EndView",
+    render: function () {
+        return (React.createElement("div", null, "todo end"));
+    }
+});
+
 module.exports.GameView = React.createClass({displayName: "GameView",
     onLeaveGame: function (e) {
         this.props.actions.leaveGame();
     },
     render: function () {
+        var guessingView, playingView, endView;
+        if (this.props.state == 'GUESSING') {
+            guessingView = React.createElement(GuessingView, React.__spread({},  this.props))
+        } else if (this.props.state == 'PLAYING') {
+            playingView = React.createElement(PlayingView, React.__spread({},  this.props))
+        } else if (this.props.state == 'END') {
+            endView = React.createElement(EndView, React.__spread({},  this.props))
+        }
+
         return (
             React.createElement("div", null, 
                 "You joined Game: ", this.props.name, 
@@ -143,7 +197,10 @@ module.exports.GameView = React.createClass({displayName: "GameView",
                 "Status: ", this.props.state, 
                 React.createElement("br", null), 
                 "Users: ", this.props.users.join(', '), 
-                React.createElement("button", {type: "button", onClick: this.onLeaveGame}, "leave game")
+                React.createElement("button", {type: "button", onClick: this.onLeaveGame}, "leave game"), 
+                guessingView, 
+                playingView, 
+                endView
             )
         );
     }
