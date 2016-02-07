@@ -128,7 +128,7 @@ game status:
 
 lobby status:
     [
-        "lobby",
+        "lobbyState",
         {
             "users": [user_name, ...],
             "games": [
@@ -148,7 +148,7 @@ lobby status:
 
     Example:
     [
-        "lobby",
+        "lobbyState",
         {
             "users": ["Bob", "Bobbins", "Bobbienchen", "B o b"],
             "games": [

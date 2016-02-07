@@ -1,6 +1,7 @@
 var React = require('react');
 var ReactDOM = require('react-dom');
 var StateStore = require('./store.jsx');
+var Actions = require('./actions.jsx');
 var UserView = require('./views/user.jsx').UserView;
 var LobbyView = require('./views/lobby.jsx').LobbyView;
 var GameView = require('./views/game.jsx').GameView;
@@ -11,7 +12,11 @@ var store = new StateStore();
 
 var AppView = React.createClass({
     getInitialState: function() {
-        return {};
+        return {
+            userState: {},
+            lobbyState: {},
+            gameState: {},
+        };
     },
     componentDidMount: function () {
         this.props.store.onUpdate(this.setState.bind(this));
@@ -21,9 +26,6 @@ var AppView = React.createClass({
     setupConnection: function () {
         var that = this;
         var connection = new SockJS('http://' + window.location.host + '/sock');
-        connection.onopen = function (e) {
-            that.connection = connection;
-        };
         connection.onclose = function (e) {
             console.log('closed');
         };
@@ -45,47 +47,28 @@ var AppView = React.createClass({
             }
             console.log(message);
         };
+        this.connection = connection;
     },
     setActions: function () {
-        this.actions = {
-            onCreateGame: this.onCreateGame,
-            onJoinGame: this.onJoinGame,
-            onLeaveGame: this.onLeaveGame,
-            onRename: this.onRename
-        }
-    },
-    onCreateGame: function (args) {
-        this.connection.send(JSON.stringify(['createGame', args]));
-    },
-    onJoinGame: function (e) {
-        var $btn = $(e.currentTarget);
-        var gameId = $btn.data('game-id');
-        this.connection.send(JSON.stringify(['joinGame', {id: gameId}]));
-    },
-    onLeaveGame: function (e) {
-        this.connection.send(JSON.stringify(['leaveGame']));
-    },
-    onRename: function (args) {
-        this.connection.send(JSON.stringify(['rename', args]))
+        this.actions = new Actions(this.connection);
     },
     render: function () {
-        var lobby, game, user;
-        if (this.state.userState) {
-            if (!this.state.userState.userName) {
-               user = <UserView actions={this.actions} />
-            }
-            else if (this.state.userState.inGame) {
-                game = <GameView {...this.state.gameState} actions={this.actions} />
+        var lobbyView, gameView, userView;
+
+        userView = <UserView {...this.state.userState} actions={this.actions} />
+        if (this.state.userState.userName) {
+            if (this.state.userState.inGame) {
+                gameView = <GameView {...this.state.gameState} actions={this.actions} />
             }
             else {
-                lobby = <LobbyView {...this.state.lobby} actions={this.actions} />
+                lobbyView = <LobbyView {...this.state.lobbyState} actions={this.actions} />
             }
         }
         return (
             <div>
-                {user}
-                {lobby}
-                {game}
+                {userView}
+                {lobbyView}
+                {gameView}
             </div>
         );
     }

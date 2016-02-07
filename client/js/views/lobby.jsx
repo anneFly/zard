@@ -10,8 +10,8 @@ var CreateGameMaskView = React.createClass({
             gameSize: 3
         };
     },
-    createGame: function (event) {
-        this.props.actions.onCreateGame({
+    onCreateGame: function (event) {
+        this.props.actions.createGame({
             name: this.state.gameName,
             size: this.state.gameSize
         });
@@ -27,7 +27,7 @@ var CreateGameMaskView = React.createClass({
                         <option value="5">5 Players</option>
                         <option value="6">6 Players</option>
                     </select>
-                    <button type="button" onClick={this.createGame}>Create</button>
+                    <button type="button" onClick={this.onCreateGame}>Create</button>
                 </form>
             </div>
         );
@@ -35,13 +35,17 @@ var CreateGameMaskView = React.createClass({
 });
 
 var GameListItemView = React.createClass({
+    onJoinGame: function (e) {
+        this.props.actions.joinGame({
+            id: this.props.game.id
+        });
+    },
     render: function() {
-        var actions = this.props.actions;
         var game = this.props.game;
         return (
             <li>
                 {game.name} ({game.users.length}/{game.size})
-                <button type="button" data-game-id={game.id} onClick={this.props.actions.onJoinGame}>Join Game</button>
+                <button type="button" onClick={this.onJoinGame}>Join Game</button>
             </li>
         );
     }

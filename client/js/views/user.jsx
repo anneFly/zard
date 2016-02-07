@@ -6,21 +6,27 @@ module.exports.UserView = React.createClass({
     mixins: [LinkedStateMixin],
     getInitialState: function () {
         return {
-            userName: '',
+            userName: this.props.userName,
         };
     },
-    rename: function (event) {
-        this.props.actions.onRename({
+    onRename: function (event) {
+        this.props.actions.rename({
             name: this.state.userName
         });
     },
     render: function () {
-        return (
-            <div>
-                Please enter a user name:
-                <input type="text" valueLink={this.linkState('userName')}/>
-                <button type="button" onClick={this.rename}>Submit</button>
-            </div>
-        );
+        if (this.props.userName) {
+            return (
+                <div>Hello {this.props.userName}</div>
+            )
+        } else {
+            return (
+                <div>
+                    Please enter a user name:
+                    <input type="text" valueLink={this.linkState('userName')}/>
+                    <button type="button" onClick={this.onRename}>Submit</button>
+                </div>
+            );
+        }
     }
 });

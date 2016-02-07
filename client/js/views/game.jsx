@@ -2,9 +2,10 @@ var React = require('react');
 
 
 module.exports.GameView = React.createClass({
+    onLeaveGame: function (e) {
+        this.props.actions.leaveGame();
+    },
     render: function () {
-        var actions = this.props.actions;
-
         return (
             <div>
                 You joined Game: {this.props.name}
@@ -12,7 +13,7 @@ module.exports.GameView = React.createClass({
                 Status: {this.props.state}
                 <br/>
                 Users: {this.props.users.join(', ')}
-                <button type="button" onClick={actions.onLeaveGame}>leave game</button>
+                <button type="button" onClick={this.onLeaveGame}>leave game</button>
             </div>
         );
     }

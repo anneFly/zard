@@ -20,7 +20,7 @@ STATICS_DIR = os.path.join(PROJECT_DIR, 'statics')
 
 def serialize_lobby_status():
     return json.dumps([
-        'lobby',
+        'lobbyState',
         {
             'users': [u.name for u in users if u.name],
             'games': [

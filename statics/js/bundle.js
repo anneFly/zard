@@ -1,9 +1,31 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+var Actions = function (connection) {
+    this.connection = connection;
+};
+
+Actions.prototype = {
+    createGame: function (args) {
+        this.connection.send(JSON.stringify(['createGame', args]));
+    },
+    joinGame: function (args) {
+        this.connection.send(JSON.stringify(['joinGame', args]));
+    },
+    leaveGame: function () {
+        this.connection.send(JSON.stringify(['leaveGame']));
+    },
+    rename: function (args) {
+        this.connection.send(JSON.stringify(['rename', args]))
+    }
+};
+
+
+module.exports = Actions;
 
 },{}],2:[function(require,module,exports){
 var React = require('react');
 var ReactDOM = require('react-dom');
 var StateStore = require('./store.jsx');
+var Actions = require('./actions.jsx');
 var UserView = require('./views/user.jsx').UserView;
 var LobbyView = require('./views/lobby.jsx').LobbyView;
 var GameView = require('./views/game.jsx').GameView;
@@ -14,7 +36,11 @@ var store = new StateStore();
 
 var AppView = React.createClass({displayName: "AppView",
     getInitialState: function() {
-        return {};
+        return {
+            userState: {},
+            lobbyState: {},
+            gameState: {},
+        };
     },
     componentDidMount: function () {
         this.props.store.onUpdate(this.setState.bind(this));
@@ -24,9 +50,6 @@ var AppView = React.createClass({displayName: "AppView",
     setupConnection: function () {
         var that = this;
         var connection = new SockJS('http://' + window.location.host + '/sock');
-        connection.onopen = function (e) {
-            that.connection = connection;
-        };
         connection.onclose = function (e) {
             console.log('closed');
         };
@@ -48,47 +71,28 @@ var AppView = React.createClass({displayName: "AppView",
             }
             console.log(message);
         };
+        this.connection = connection;
     },
     setActions: function () {
-        this.actions = {
-            onCreateGame: this.onCreateGame,
-            onJoinGame: this.onJoinGame,
-            onLeaveGame: this.onLeaveGame,
-            onRename: this.onRename
-        }
-    },
-    onCreateGame: function (args) {
-        this.connection.send(JSON.stringify(['createGame', args]));
-    },
-    onJoinGame: function (e) {
-        var $btn = $(e.currentTarget);
-        var gameId = $btn.data('game-id');
-        this.connection.send(JSON.stringify(['joinGame', {id: gameId}]));
-    },
-    onLeaveGame: function (e) {
-        this.connection.send(JSON.stringify(['leaveGame']));
-    },
-    onRename: function (args) {
-        this.connection.send(JSON.stringify(['rename', args]))
+        this.actions = new Actions(this.connection);
     },
     render: function () {
-        var lobby, game, user;
-        if (this.state.userState) {
-            if (!this.state.userState.userName) {
-               user = React.createElement(UserView, {actions: this.actions})
-            }
-            else if (this.state.userState.inGame) {
-                game = React.createElement(GameView, React.__spread({},  this.state.gameState, {actions: this.actions}))
+        var lobbyView, gameView, userView;
+
+        userView = React.createElement(UserView, React.__spread({},  this.state.userState, {actions: this.actions}))
+        if (this.state.userState.userName) {
+            if (this.state.userState.inGame) {
+                gameView = React.createElement(GameView, React.__spread({},  this.state.gameState, {actions: this.actions}))
             }
             else {
-                lobby = React.createElement(LobbyView, React.__spread({},  this.state.lobby, {actions: this.actions}))
+                lobbyView = React.createElement(LobbyView, React.__spread({},  this.state.lobbyState, {actions: this.actions}))
             }
         }
         return (
             React.createElement("div", null, 
-                user, 
-                lobby, 
-                game
+                userView, 
+                lobbyView, 
+                gameView
             )
         );
     }
@@ -102,7 +106,7 @@ window.addEventListener('load', function () {
     );
 });
 
-},{"./store.jsx":3,"./views/game.jsx":4,"./views/lobby.jsx":5,"./views/user.jsx":6,"react":168,"react-dom":36}],3:[function(require,module,exports){
+},{"./actions.jsx":1,"./store.jsx":3,"./views/game.jsx":4,"./views/lobby.jsx":5,"./views/user.jsx":6,"react":168,"react-dom":36}],3:[function(require,module,exports){
 var StateStore = function () {
     this._callback = undefined;
     this.state = {};
@@ -128,9 +132,10 @@ var React = require('react');
 
 
 module.exports.GameView = React.createClass({displayName: "GameView",
+    onLeaveGame: function (e) {
+        this.props.actions.leaveGame();
+    },
     render: function () {
-        var actions = this.props.actions;
-
         return (
             React.createElement("div", null, 
                 "You joined Game: ", this.props.name, 
@@ -138,7 +143,7 @@ module.exports.GameView = React.createClass({displayName: "GameView",
                 "Status: ", this.props.state, 
                 React.createElement("br", null), 
                 "Users: ", this.props.users.join(', '), 
-                React.createElement("button", {type: "button", onClick: actions.onLeaveGame}, "leave game")
+                React.createElement("button", {type: "button", onClick: this.onLeaveGame}, "leave game")
             )
         );
     }
@@ -157,8 +162,8 @@ var CreateGameMaskView = React.createClass({displayName: "CreateGameMaskView",
             gameSize: 3
         };
     },
-    createGame: function (event) {
-        this.props.actions.onCreateGame({
+    onCreateGame: function (event) {
+        this.props.actions.createGame({
             name: this.state.gameName,
             size: this.state.gameSize
         });
@@ -174,7 +179,7 @@ var CreateGameMaskView = React.createClass({displayName: "CreateGameMaskView",
                         React.createElement("option", {value: "5"}, "5 Players"), 
                         React.createElement("option", {value: "6"}, "6 Players")
                     ), 
-                    React.createElement("button", {type: "button", onClick: this.createGame}, "Create")
+                    React.createElement("button", {type: "button", onClick: this.onCreateGame}, "Create")
                 )
             )
         );
@@ -182,13 +187,17 @@ var CreateGameMaskView = React.createClass({displayName: "CreateGameMaskView",
 });
 
 var GameListItemView = React.createClass({displayName: "GameListItemView",
+    onJoinGame: function (e) {
+        this.props.actions.joinGame({
+            id: this.props.game.id
+        });
+    },
     render: function() {
-        var actions = this.props.actions;
         var game = this.props.game;
         return (
             React.createElement("li", null, 
                 game.name, " (", game.users.length, "/", game.size, ")", 
-                React.createElement("button", {type: "button", "data-game-id": game.id, onClick: this.props.actions.onJoinGame}, "Join Game")
+                React.createElement("button", {type: "button", onClick: this.onJoinGame}, "Join Game")
             )
         );
     }
@@ -243,22 +252,28 @@ module.exports.UserView = React.createClass({displayName: "UserView",
     mixins: [LinkedStateMixin],
     getInitialState: function () {
         return {
-            userName: '',
+            userName: this.props.userName,
         };
     },
-    rename: function (event) {
-        this.props.actions.onRename({
+    onRename: function (event) {
+        this.props.actions.rename({
             name: this.state.userName
         });
     },
     render: function () {
-        return (
-            React.createElement("div", null, 
-                "Please enter a user name:", 
-                React.createElement("input", {type: "text", valueLink: this.linkState('userName')}), 
-                React.createElement("button", {type: "button", onClick: this.rename}, "Submit")
+        if (this.props.userName) {
+            return (
+                React.createElement("div", null, "Hello ", this.props.userName)
             )
-        );
+        } else {
+            return (
+                React.createElement("div", null, 
+                    "Please enter a user name:", 
+                    React.createElement("input", {type: "text", valueLink: this.linkState('userName')}), 
+                    React.createElement("button", {type: "button", onClick: this.onRename}, "Submit")
+                )
+            );
+        }
     }
 });
 
