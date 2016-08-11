@@ -1,21 +1,20 @@
-var Actions = function (connection) {
-    this.connection = connection;
-};
-
-Actions.prototype = {
-    createGame: function (args) {
+class Actions {
+    constructor (connection) {
+        this.connection = connection;
+    }
+    createGame (args) {
         this.connection.send(JSON.stringify(['createGame', args]));
-    },
-    joinGame: function (args) {
+    }
+    joinGame (args) {
         this.connection.send(JSON.stringify(['joinGame', args]));
-    },
-    leaveGame: function () {
+    }
+    leaveGame () {
         this.connection.send(JSON.stringify(['leaveGame']));
-    },
-    rename: function (args) {
+    }
+    rename (args) {
         this.connection.send(JSON.stringify(['rename', args]))
     }
-};
+}
 
 
 module.exports = Actions;

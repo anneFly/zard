@@ -18,14 +18,14 @@ module.exports = function (grunt) {
                     'statics/js/bundle.js': ['client/js/**/*.js', 'client/js/**/*.jsx']
                 },
                 options: {
-                    transform:  [ require('grunt-react').browserify ]
+                    transform: [['babelify', {presets: ['react', 'es2015']}]],
                 }
             }
         },
 
         watch: {
             scripts: {
-                files: ['client/js/**/*.jsx'],
+                files: ['client/js/**/*.jsx', 'client/js/**/*.js'],
                 tasks: ['build'],
             }
         }

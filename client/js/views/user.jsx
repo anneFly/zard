@@ -1,20 +1,18 @@
-var React = require('react');
-var LinkedStateMixin = require('react-addons-linked-state-mixin');
+const React = require('react');
 
 
-module.exports.UserView = React.createClass({
-    mixins: [LinkedStateMixin],
-    getInitialState: function () {
-        return {
-            userName: this.props.userName,
-        };
-    },
-    onRename: function (event) {
+
+class UserView extends React.Component {
+    constructor (props) {
+        super(props);
+    }
+    onRename (event) {
+        const name = this.refs.input.value;
         this.props.actions.rename({
-            name: this.state.userName
+            name: name
         });
-    },
-    render: function () {
+    }
+    render () {
         if (this.props.userName) {
             return (
                 <div>Hello {this.props.userName}</div>
@@ -23,10 +21,15 @@ module.exports.UserView = React.createClass({
             return (
                 <div>
                     Please enter a user name:
-                    <input type="text" valueLink={this.linkState('userName')}/>
-                    <button type="button" onClick={this.onRename}>Submit</button>
+                    <input type="text" ref='input' />
+                    <button type="button" onClick={this.onRename.bind(this)}>Submit</button>
                 </div>
             );
         }
     }
-});
+}
+
+
+module.exports = {
+    UserView
+}

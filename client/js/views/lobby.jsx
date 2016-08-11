@@ -1,77 +1,79 @@
-var React = require('react');
-var LinkedStateMixin = require('react-addons-linked-state-mixin');
+const React = require('react');
 
 
-var CreateGameMaskView = React.createClass({
-    mixins: [LinkedStateMixin],
-    getInitialState: function () {
-        return {
+class CreateGameMaskView extends React.Component {
+    constructor (props) {
+        super(props);
+        this.state = {
             gameName: '',
             gameSize: 3
-        };
-    },
-    onCreateGame: function (event) {
+        }
+    }
+    onCreateGame (event) {
+        const gameName = this.refs.nameInput.value;
+        const gameSize = this.refs.sizeInput.value;
         this.props.actions.createGame({
-            name: this.state.gameName,
-            size: this.state.gameSize
+            name: gameName,
+            size: gameSize,
         });
-    },
-    render: function () {
+    }
+    render () {
         return (
             <div>
                 <form>
-                    <input type="text" placeholder="game name" valueLink={this.linkState('gameName')} />
-                    <select valueLink={this.linkState('gameSize')}>
+                    <input type="text" placeholder="game name" ref='nameInput' />
+                    <select ref='sizeInput'>
                         <option value="3">3 Players</option>
                         <option value="4">4 Players</option>
                         <option value="5">5 Players</option>
                         <option value="6">6 Players</option>
                     </select>
-                    <button type="button" onClick={this.onCreateGame}>Create</button>
+                    <button type="button" onClick={this.onCreateGame.bind(this)}>Create</button>
                 </form>
             </div>
         );
     }
-});
+}
 
-var GameListItemView = React.createClass({
-    onJoinGame: function (e) {
+class GameListItemView extends React.Component {
+    onJoinGame (e) {
         this.props.actions.joinGame({
             id: this.props.game.id
         });
-    },
-    render: function() {
-        var game = this.props.game;
+    }
+    render () {
+        let game = this.props.game;
         return (
             <li>
                 {game.name} ({game.users.length}/{game.size})
-                <button type="button" onClick={this.onJoinGame}>Join Game</button>
+                <button type="button" onClick={this.onJoinGame.bind(this)}>Join Game</button>
             </li>
         );
     }
-});
+}
 
-var GameListView = React.createClass({
-    render: function() {
+class GameListView extends React.Component {
+    render () {
         return (
             <ul>
-            {this.props.games.map(function(result) {
+            {this.props.games.map((result) => {
                 return <GameListItemView key={result.id} game={result} actions={this.props.actions} />;
-            }.bind(this))}
+            })}
             </ul>
         );
     }
-});
+}
 
-module.exports.LobbyView = React.createClass({
-    getInitialState: function() {
-        return {createGameMaskIsShown: false};
-    },
-    toggleGameMask: function () {
+class LobbyView extends React.Component {
+    constructor (props) {
+        super(props);
+        this.state = {createGameMaskIsShown: false};
+    }
+    toggleGameMask (event) {
         this.setState({createGameMaskIsShown: !this.state.createGameMaskIsShown});
-    },
-    render: function () {
-        var createGameMask;
+    }
+    render () {
+        let gameListView, createGameMask;
         if (this.props.games) {
             gameListView = <GameListView {...this.props} actions={this.props.actions} />;
         }
@@ -84,9 +86,14 @@ module.exports.LobbyView = React.createClass({
                 <br/>
                 {gameListView}
                 <hr/>
-                <button type="button" onClick={this.toggleGameMask}>Create Game</button>
+                <button type="button" onClick={this.toggleGameMask.bind(this)}>Create Game</button>
                 {createGameMask}
             </div>
         );
     }
-});
+}
+
+
+module.exports = {
+    LobbyView,
+}

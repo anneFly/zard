@@ -1,9 +1,9 @@
 var React = require('react');
 
 
-var GuessingView = React.createClass({
-    renderGuesses: function () {
-        var rows = [];
+class GuessingView extends React.Component {
+    renderGuesses () {
+        const rows = [];
         for (playerName in this.props.guesses) {
             rows.push([playerName, this.props.guesses[playerName]]);
         }
@@ -18,40 +18,40 @@ var GuessingView = React.createClass({
                 </table>
             </div>
         );
-    },
-    renderGuessMask: function () {
+    }
+    renderGuessForm () {
         if (this.props.activePlayer == this.props.userState.userName) {
             return (<div>todo gamemask</div>)
         }
-    },
-    render: function () {
+    }
+    render () {
         return (
             <div>
                 {this.renderGuesses()}
-                {this.renderGuessMask()}
+                {this.renderGuessForm()}
             </div>
         );
     }
-});
+}
 
-var PlayingView = React.createClass({
-    render: function () {
+class PlayingView extends React.Component {
+    render () {
         return (<div>todo playing</div>);
     }
-});
+}
 
-var EndView = React.createClass({
-    render: function () {
+class EndView extends React.Component {
+    render () {
         return (<div>todo end</div>);
     }
-});
+}
 
-module.exports.GameView = React.createClass({
-    onLeaveGame: function (e) {
+class GameView extends React.Component {
+    onLeaveGame (e) {
         this.props.actions.leaveGame();
-    },
-    render: function () {
-        var guessingView, playingView, endView;
+    }
+    render () {
+        let guessingView, playingView, endView;
         if (this.props.state == 'GUESSING') {
             guessingView = <GuessingView {...this.props} />
         } else if (this.props.state == 'PLAYING') {
@@ -67,11 +67,16 @@ module.exports.GameView = React.createClass({
                 Status: {this.props.state}
                 <br/>
                 Users: {this.props.users.join(', ')}
-                <button type="button" onClick={this.onLeaveGame}>leave game</button>
+                <button type="button" onClick={this.onLeaveGame.bind(this)}>leave game</button>
                 {guessingView}
                 {playingView}
                 {endView}
             </div>
         );
     }
-});
+}
+
+
+module.exports = {
+    GameView,
+}
