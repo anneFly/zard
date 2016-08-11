@@ -207,14 +207,14 @@ class Game:
             state.update({
                 'level': self.level,
                 'maxLevel': LEVELS[self.num_players],
-                'players': [p.name for p in self.players],
+                'players': {p.id: p.name for p in self.players},
                 'trump': self.trump.id if self.trump else None,
-                'activePlayer': self.active_player.name if self.active_player else None,
+                'activePlayer': self.active_player.id if self.active_player else None,
                 'pile': [c.id for c in self.turn.pile] if self.turn else [],
-                'lastWinner': self.last_winner.name if self.last_winner else None,
-                'score': {p.name: score for p, score in self.score.score.items()},
-                'tricks': {p.name: tricks for p, tricks in self.score.tricks.items()},
-                'guesses': {p.name: guess for p, guess in self.score.guesses.items()},
+                'lastWinner': self.last_winner.id if self.last_winner else None,
+                'score': {p.id: score for p, score in self.score.score.items()},
+                'tricks': {p.id: tricks for p, tricks in self.score.tricks.items()},
+                'guesses': {p.id: guess for p, guess in self.score.guesses.items()},
                 'hand': [c.id for c in player.hand] if player else [],
             })
         return json.dumps(['gameState', state])

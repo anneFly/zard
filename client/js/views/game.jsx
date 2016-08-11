@@ -4,13 +4,13 @@ var React = require('react');
 class GuessingView extends React.Component {
     renderGuesses () {
         const rows = [];
-        for (playerName in this.props.guesses) {
-            rows.push([playerName, this.props.guesses[playerName]]);
+        for (playerId in this.props.guesses) {
+            rows.push([this.props.players[playerId], this.props.guesses[playerId]]);
         }
         return (
             <div>
                 <hr/>
-                Currently Guessing: {this.props.activePlayer}<br/>
+                Currently Guessing: {this.props.players[this.props.activePlayer]}<br/>
                 <table>
                     {rows.map(function (row) {
                         return (<tr key={row[0]}><td>row[0]</td><td>row[1]</td></tr>)
@@ -20,8 +20,8 @@ class GuessingView extends React.Component {
         );
     }
     renderGuessForm () {
-        if (this.props.activePlayer == this.props.userState.userName) {
-            return (<div>todo gamemask</div>)
+        if (this.props.activePlayer == this.props.userState.userId) {
+            return (<div>todo guess form</div>)
         }
     }
     render () {

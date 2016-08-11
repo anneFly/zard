@@ -6,6 +6,7 @@ class Player:
         self.hand = []
         self.tricks = []
         self.user = user
+        self.id = user.id
         self.name = user.name
 
     def __repr__(self):

@@ -1,7 +1,6 @@
 import json
 import os
-import random
-import time
+from uuid import uuid4
 
 import tornado.ioloop
 import tornado.web
@@ -42,6 +41,7 @@ def serialize_user_status(user):
         'userState',
         {
             'userName': user.name,
+            'userId': user.id,
             'inGame': bool(user.game),
         }
     ])
@@ -68,9 +68,7 @@ class GameConnection(SockJSConnection):
         self.game = None
 
     def on_open(self, info):
-        self.id = str(str(time.time()) + str(info.ip))\
-            .replace('.', '')\
-            .replace(':', '')
+        self.id = str(uuid4())
         self.name = ''
         users.add(self)
         self.send(serialize_user_status(self))
